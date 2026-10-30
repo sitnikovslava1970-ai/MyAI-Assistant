@@ -15,8 +15,9 @@ def export_fpv_layout_dxf(path: str | Path, spec: FPVFrameSpec | None = None) ->
     l, w = spec.top_plate_length_mm / 2, spec.plate_width_mm / 2
     outlines["CENTER_PLATE"] = [(-l, -w), (l, -w), (l, w), (-l, w)]
     holes = []
-    for x, y in spec.motor_centers().values():
-        holes.append((x, y, spec.motor_mount_spacing_mm / 2))
+    for motor_holes in spec.motor_holes().values():
+        for x, y in motor_holes:
+            holes.append((x, y, spec.motor_hole_diameter_mm / 2))
     return export_outline_dxf(path, outlines, holes)
 
 
