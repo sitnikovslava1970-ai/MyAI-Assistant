@@ -2,9 +2,9 @@
 from pathlib import Path
 from tempfile import TemporaryDirectory
 from fastapi import FastAPI, HTTPException
-from fastapi.responses import FileResponse
+from fastapi.responses import Response
 from pydantic import BaseModel, Field
-from build123d import Align, Box, Cylinder, Mode, Pos, export_step, export_stl
+from build123d import Align, Box, Cylinder, Pos, export_step, export_stl
 import ezdxf
 
 app = FastAPI(title="MyAI Assistant CAD API", version="0.1.0")
@@ -64,4 +64,9 @@ def create_sample_plate(format_name: str, p: PlateParameters):
                     msp.add_circle((x, y), p.hole_diameter_mm / 2)
             doc.header["$INSUNITS"] = 4  # millimetres
             doc.saveas(out)
-        return FileResponse(out, filename=out.name, media_type="application/octet-stream")
+        payload = out.read_bytes()
+    return Response(
+        content=payload,
+        media_type="application/octet-stream",
+        headers={"Content-Disposition": f'attachment; filename="sample_plate.{fmt}"'},
+    )
