@@ -1,0 +1,95 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>MyAI Assistant — 3D Viewer</title>
+  <style>
+    * { box-sizing: border-box; }
+    body { margin: 0; font: 16px system-ui, sans-serif; background: #111827; color: #f9fafb; }
+    header { padding: 14px 18px; display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
+    h1 { font-size: 18px; margin: 0; }
+    input { max-width: 100%; }
+    #stage { height: calc(100dvh - 64px); min-height: 360px; }
+    #hint { color: #cbd5e1; font-size: 13px; }
+    canvas { display: block; }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>MyAI Assistant · 3D Viewer</h1>
+    <input id="file" type="file" accept=".stl,.STL">
+    <span id="hint">Choose an STL file · drag to rotate · scroll/pinch to zoom</span>
+  </header>
+  <main id="stage"></main>
+  <script type="module">
+    import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js';
+    import { OrbitControls } from 'https://cdn.jsdelivr.net/npm/three@0.170.0/examples/jsm/controls/OrbitControls.js';
+    import { STLLoader } from 'https://cdn.jsdelivr.net/npm/three@0.170.0/examples/jsm/loaders/STLLoader.js';
+
+    const stage = document.querySelector('#stage');
+    const hint = document.querySelector('#hint');
+    const scene = new THREE.Scene();
+    scene.background = new THREE.Color(0x111827);
+    const camera = new THREE.PerspectiveCamera(45, 1, 0.1, 100000);
+    camera.position.set(140, 120, 140);
+    const renderer = new THREE.WebGLRenderer({ antialias: true });
+    renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+    stage.appendChild(renderer.domElement);
+    const controls = new OrbitControls(camera, renderer.domElement);
+    controls.enableDamping = true;
+    scene.add(new THREE.HemisphereLight(0xffffff, 0x475569, 2));
+    const light = new THREE.DirectionalLight(0xffffff, 2);
+    light.position.set(100, 150, 100);
+    scene.add(light);
+    const grid = new THREE.GridHelper(200, 20, 0x64748b, 0x334155);
+    scene.add(grid);
+    let current = null;
+
+    function resize() {
+      const w = stage.clientWidth, h = stage.clientHeight;
+      camera.aspect = w / h;
+      camera.updateProjectionMatrix();
+      renderer.setSize(w, h);
+    }
+    new ResizeObserver(resize).observe(stage);
+    resize();
+
+    document.querySelector('#file').addEventListener('change', async (event) => {
+      const file = event.target.files?.[0];
+      if (!file) return;
+      try {
+        const geometry = new STLLoader().parse(await file.arrayBuffer());
+        geometry.computeVertexNormals();
+        if (current) {
+          scene.remove(current);
+          current.geometry.dispose();
+          current.material.dispose();
+        }
+        const material = new THREE.MeshStandardMaterial({ color: 0x60a5fa, metalness: 0.25, roughness: 0.55 });
+        current = new THREE.Mesh(geometry, material);
+        geometry.computeBoundingBox();
+        const center = new THREE.Vector3();
+        geometry.boundingBox.getCenter(center);
+        current.position.sub(center);
+        scene.add(current);
+        const size = new THREE.Vector3();
+        geometry.boundingBox.getSize(size);
+        const maxDim = Math.max(size.x, size.y, size.z, 1);
+        camera.position.set(maxDim * 1.8, maxDim * 1.5, maxDim * 1.8);
+        camera.near = Math.max(maxDim / 10000, 0.01);
+        camera.far = maxDim * 100;
+        camera.updateProjectionMatrix();
+        controls.target.set(0, 0, 0);
+        controls.update();
+        hint.textContent = file.name + ' · ' + size.x.toFixed(1) + ' × ' + size.y.toFixed(1) + ' × ' + size.z.toFixed(1) + ' (STL units)';
+      } catch (error) {
+        hint.textContent = 'Could not load this STL file: ' + error.message;
+      }
+    });
+
+    function animate() { requestAnimationFrame(animate); controls.update(); renderer.render(scene, camera); }
+    animate();
+  </script>
+</body>
+</html>
