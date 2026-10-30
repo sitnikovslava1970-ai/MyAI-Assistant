@@ -4,6 +4,9 @@ from tempfile import TemporaryDirectory
 from fastapi import FastAPI, HTTPException
 from fastapi.responses import Response
 from pydantic import BaseModel, Field
+from cad.modules.fpv_frame import FPVFrameSpec
+from cad.modules.propeller import PropellerSpec
+from cad.modules.service import export_fpv_layout_dxf, export_propeller_planform_dxf
 from build123d import Align, Box, Cylinder, Pos, export_step, export_stl
 import ezdxf
 
@@ -16,6 +19,30 @@ class PlateParameters(BaseModel):
     thickness_mm: float = Field(default=5, gt=1, le=30)
     hole_diameter_mm: float = Field(default=5, gt=1, le=20)
     hole_inset_mm: float = Field(default=10, gt=2, le=100)
+
+
+class FPVFrameRequest(BaseModel):
+    wheelbase_mm: float = Field(default=315, gt=100, le=500)
+    arm_width_mm: float = Field(default=5, gt=1, le=30)
+    arm_thickness_mm: float = Field(default=5, gt=1, le=30)
+    top_plate_length_mm: float = Field(default=160, gt=20, le=300)
+    plate_width_mm: float = Field(default=75, gt=20, le=200)
+    plate_thickness_mm: float = Field(default=2, gt=0.5, le=10)
+    motor_mount_spacing_mm: float = Field(default=19, gt=5, le=40)
+    motor_hole_diameter_mm: float = Field(default=3.2, gt=1, le=8)
+    standoff_height_mm: float = Field(default=25, gt=5, le=80)
+    camera_angle_deg: float = Field(default=30, ge=0, le=60)
+
+
+class PropellerRequest(BaseModel):
+    diameter_in: float = Field(default=7, gt=1, le=20)
+    blade_count: int = Field(default=2, ge=2, le=2)
+    bore_diameter_mm: float = Field(default=5, gt=1, le=15)
+    hub_diameter_mm: float = Field(default=16, gt=6, le=40)
+    hub_thickness_mm: float = Field(default=7, gt=2, le=20)
+    root_chord_mm: float = Field(default=18, gt=3, le=50)
+    tip_chord_mm: float = Field(default=8, gt=2, le=30)
+    sweep_mm: float = Field(default=8, ge=0, le=30)
 
 
 @app.get("/health")
@@ -70,3 +97,47 @@ def create_sample_plate(format_name: str, p: PlateParameters):
         media_type="application/octet-stream",
         headers={"Content-Disposition": f'attachment; filename="sample_plate.{fmt}"'},
     )
+
+
+@app.post("/cad/fpv-frame/spec")
+def fpv_frame_spec(p: FPVFrameRequest):
+    spec = FPVFrameSpec(**p.model_dump())
+    try:
+        return spec.to_dict()
+    except ValueError as exc:
+        raise HTTPException(status_code=422, detail=str(exc)) from exc
+
+
+@app.post("/cad/propeller/spec")
+def propeller_spec(p: PropellerRequest):
+    spec = PropellerSpec(**p.model_dump())
+    try:
+        return spec.to_dict()
+    except ValueError as exc:
+        raise HTTPException(status_code=422, detail=str(exc)) from exc
+
+
+@app.post("/cad/fpv-frame/dxf")
+def fpv_frame_dxf(p: FPVFrameRequest):
+    spec = FPVFrameSpec(**p.model_dump())
+    try:
+        with TemporaryDirectory() as temp:
+            out = export_fpv_layout_dxf(Path(temp) / "fpv_frame_layout.dxf", spec)
+            payload = out.read_bytes()
+    except ValueError as exc:
+        raise HTTPException(status_code=422, detail=str(exc)) from exc
+    return Response(content=payload, media_type="application/dxf",
+                    headers={"Content-Disposition": 'attachment; filename="fpv_frame_layout.dxf"'})
+
+
+@app.post("/cad/propeller/dxf")
+def propeller_dxf(p: PropellerRequest):
+    spec = PropellerSpec(**p.model_dump())
+    try:
+        with TemporaryDirectory() as temp:
+            out = export_propeller_planform_dxf(Path(temp) / "propeller_planform.dxf", spec)
+            payload = out.read_bytes()
+    except ValueError as exc:
+        raise HTTPException(status_code=422, detail=str(exc)) from exc
+    return Response(content=payload, media_type="application/dxf",
+                    headers={"Content-Disposition": 'attachment; filename="propeller_planform.dxf"'})
