@@ -220,3 +220,15 @@ Phases may overlap when dependencies allow. Each feature should be tested before
 ## License
 
 No license has been selected yet. The project is currently intended for personal use.
+
+
+## CAD and 3D Engineering
+
+The initial CAD foundation is now in `cad/`:
+
+- Parametric CAD API using build123d, with STEP/STL/DXF sample plate export.
+- Engineering helpers for dimensions, classic-X FPV frame layout, two-blade propeller planform, assembly BOM and DXF export.
+- Browser STL viewer in `3d_viewer/`.
+- Automated tests in `tests/` and GitHub Actions in `.github/workflows/cad-tests.yml`.
+
+Start with [CAD setup](cad/README.md) and [engineering module notes](cad/modules/README.md). The FPV and propeller DXFs are preliminary layout references, not production-certified geometry. The propeller outline is not an aerodynamic blade model. Verify all dimensions and perform engineering validation before manufacture or flight.
