@@ -1,0 +1,7 @@
+# Python CAD engine and export formats
+build123d>=0.9,<0.11
+ezdxf>=1.4,<2
+trimesh>=4.6,<5
+fastapi>=0.115,<1
+uvicorn[standard]>=0.30,<1
+python-multipart>=0.0.9
