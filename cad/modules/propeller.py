@@ -27,8 +27,10 @@ class PropellerSpec:
         if self.diameter_in <= 0 or self.blade_count != 2:
             raise ValueError("This first generator supports a positive diameter and exactly 2 blades")
         for key, value in asdict(self).items():
-            if key != "blade_count" and value <= 0:
+            if key not in {"blade_count", "sweep_mm"} and value <= 0:
                 raise ValueError(f"{key} must be positive")
+        if self.sweep_mm < 0:
+            raise ValueError("sweep_mm cannot be negative")
         if self.bore_diameter_mm >= self.hub_diameter_mm:
             raise ValueError("Bore diameter must be smaller than hub diameter")
         if self.hub_diameter_mm >= self.diameter_mm:
