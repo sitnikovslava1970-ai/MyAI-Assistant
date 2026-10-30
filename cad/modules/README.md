@@ -13,6 +13,8 @@ All values are millimetres unless a field explicitly says inches.
 
 The first FPV DXF is a layout reference containing top/bottom plate envelopes, four arm envelopes and motor mounting holes. It does not yet include the final four-arm root bolt pattern, standoff holes, camera side plates, DJI O4 clearances, battery slots, stack mounting holes or CNC tool compensation.
 
+Only the 7-inch diameter, two blades and 5 mm bore are carried over as previously specified design inputs. Hub diameter/thickness, chord widths and sweep are provisional starter values and must be confirmed before any detailed design.
+
 The propeller DXF is a preliminary 2D planform only. It is not an aerodynamic blade solid: pitch, airfoil section, twist, hub retention, material, balance, stress, fatigue and rotor testing remain to be designed and validated. Do not manufacture or fly from this preliminary outline.
 
 The generic STEP/STL endpoint currently creates a sample four-hole plate. FPV and propeller specific endpoints currently provide JSON parameter/specification output and DXF planform export. Full solid models and assembly STEP export are a subsequent implementation stage.
