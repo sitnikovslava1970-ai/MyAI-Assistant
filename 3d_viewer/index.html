@@ -22,8 +22,8 @@
     <span id="hint">Choose an STL file · drag to rotate · scroll/pinch to zoom</span>
   </header>
   <main id="stage"></main>
-  <script type="module">
-    import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js';
+  <script type="importmap">\n    {"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js"}}\n  </script>\n  <script type="module">
+    import * as THREE from 'three';
     import { OrbitControls } from 'https://cdn.jsdelivr.net/npm/three@0.170.0/examples/jsm/controls/OrbitControls.js';
     import { STLLoader } from 'https://cdn.jsdelivr.net/npm/three@0.170.0/examples/jsm/loaders/STLLoader.js';
 
