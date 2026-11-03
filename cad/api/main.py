@@ -5,6 +5,7 @@ from fastapi import FastAPI, HTTPException
 from fastapi.responses import Response
 from pydantic import BaseModel, Field
 from cad.modules.fpv_frame import FPVFrameSpec
+from cad.modules.fpv_frame_solid import FPVFrameSolidSpec, export_fpv_frame_step
 from cad.modules.propeller import PropellerSpec
 from cad.modules.service import export_fpv_layout_dxf, export_propeller_planform_dxf
 from build123d import Align, Box, Cylinder, Pos, export_step, export_stl
@@ -23,7 +24,7 @@ class PlateParameters(BaseModel):
 
 class FPVFrameRequest(BaseModel):
     wheelbase_mm: float = Field(default=315, gt=100, le=500)
-    arm_width_mm: float = Field(default=5, gt=1, le=30)
+    arm_width_mm: float = Field(default=18, gt=1, le=30)
     arm_thickness_mm: float = Field(default=5, gt=1, le=30)
     top_plate_length_mm: float = Field(default=160, gt=20, le=300)
     plate_width_mm: float = Field(default=75, gt=20, le=200)
@@ -106,6 +107,21 @@ def fpv_frame_spec(p: FPVFrameRequest):
         return spec.to_dict()
     except ValueError as exc:
         raise HTTPException(status_code=422, detail=str(exc)) from exc
+
+
+@app.post("/cad/fpv-frame/step")
+def fpv_frame_step(p: FPVFrameRequest):
+    """Export the first-pass multi-part Classic-X assembly as STEP."""
+    frame = FPVFrameSpec(**p.model_dump())
+    try:
+        with TemporaryDirectory() as temp:
+            out = export_fpv_frame_step(Path(temp) / "fpv_7in_classic_x.step",
+                                        frame, FPVFrameSolidSpec())
+            payload = out.read_bytes()
+    except ValueError as exc:
+        raise HTTPException(status_code=422, detail=str(exc)) from exc
+    return Response(content=payload, media_type="application/step",
+                    headers={"Content-Disposition": 'attachment; filename="fpv_7in_classic_x.step"'})
 
 
 @app.post("/cad/propeller/spec")
