@@ -10,7 +10,7 @@ from math import sqrt
 @dataclass(frozen=True)
 class FPVFrameSpec:
     wheelbase_mm: float = 315.0
-    arm_width_mm: float = 5.0
+    arm_width_mm: float = 18.0
     arm_thickness_mm: float = 5.0
     top_plate_length_mm: float = 160.0
     plate_width_mm: float = 75.0
