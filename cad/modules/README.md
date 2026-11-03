@@ -3,7 +3,8 @@
 All values are millimetres unless a field explicitly says inches.
 
 - `dimensions.py`: reusable dimensional checks and hole patterns.
-- `fpv_frame.py`: classic-X motor coordinates and motor mounting-hole coordinates.
+- `fpv_frame.py`: classic-X motor coordinates and motor mounting-hole coordinates (315 mm wheelbase, 18 mm arm width, 5 mm arm thickness by default).
+- `fpv_frame_solid.py`: first-pass STEP-ready solids for two center plates, four removable arms, motor pads and four standoffs.
 - `propeller.py`: 7-inch two-blade planform envelope and 5 mm bore defaults.
 - `assembly.py`: assembly item validation and bill of materials.
 - `dxf_export.py`: layered DXF export in millimetres.
@@ -11,10 +12,10 @@ All values are millimetres unless a field explicitly says inches.
 
 ## Engineering limitations
 
-The first FPV DXF is a layout reference containing top/bottom plate envelopes, four arm envelopes and motor mounting holes. It does not yet include the final four-arm root bolt pattern, standoff holes, camera side plates, DJI O4 clearances, battery slots, stack mounting holes or CNC tool compensation.
+The first FPV DXF remains a 2D layout reference. The new STEP solid builder creates separate top/bottom plate solids, four 18 mm-wide arms with widened motor pads, root and motor clearance holes, both 20 x 20 and 30.5 x 30.5 stack patterns, and four standoffs. The root-bolt pitch, standoff locations and motor-pad size are provisional engineering assumptions, not user-confirmed manufacturing dimensions. Camera side plates, DJI O4 clearances, battery slots, fastener hardware, CNC tool compensation and structural validation are still outstanding.
 
 Only the 7-inch diameter, two blades and 5 mm bore are carried over as previously specified design inputs. Hub diameter/thickness, chord widths and sweep are provisional starter values and must be confirmed before any detailed design.
 
 The propeller DXF is a preliminary 2D planform only. It is not an aerodynamic blade solid: pitch, airfoil section, twist, hub retention, material, balance, stress, fatigue and rotor testing remain to be designed and validated. Do not manufacture or fly from this preliminary outline.
 
-The generic STEP/STL endpoint currently creates a sample four-hole plate. FPV and propeller specific endpoints currently provide JSON parameter/specification output and DXF planform export. Full solid models and assembly STEP export are a subsequent implementation stage.
+The generic STEP/STL endpoint still creates a sample four-hole plate. The FPV endpoint `POST /cad/fpv-frame/step` now exports the first-pass multi-part frame assembly as STEP. The FPV DXF endpoint remains a preliminary 2D layout; the propeller endpoint remains a planform reference only.
