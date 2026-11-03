@@ -26,6 +26,7 @@ class FPVFrameSolidSpec:
     standoff_x_offset_mm: float = 65.0
     standoff_y_offset_mm: float = 27.5
     standoff_outer_diameter_mm: float = 6.0
+    standoff_hole_diameter_mm: float = 3.2
 
     def validate(self, frame: FPVFrameSpec) -> None:
         frame.validate()
@@ -140,7 +141,7 @@ def build_fpv_frame_parts(
                 align=(Align.CENTER, Align.CENTER, Align.MIN))
     lower = drill(lower, stack_centers, solid.stack_hole_diameter_mm,
                   -1.0, frame.plate_thickness_mm + 2.0)
-    lower = drill(lower, stands, frame.motor_hole_diameter_mm,
+    lower = drill(lower, stands, solid.standoff_hole_diameter_mm,
                   -1.0, frame.plate_thickness_mm + 2.0)
     lower = drill(lower, root_holes, solid.arm_root_hole_diameter_mm,
                   -1.0, frame.plate_thickness_mm + 2.0)
@@ -152,7 +153,7 @@ def build_fpv_frame_parts(
     )
     upper = drill(upper, stack_centers, solid.stack_hole_diameter_mm,
                   upper_z - 1.0, frame.plate_thickness_mm + 2.0)
-    upper = drill(upper, stands, frame.motor_hole_diameter_mm,
+    upper = drill(upper, stands, solid.standoff_hole_diameter_mm,
                   upper_z - 1.0, frame.plate_thickness_mm + 2.0)
 
     parts: dict[str, Any] = {"PLATE_BOTTOM": lower, "PLATE_TOP": upper}
