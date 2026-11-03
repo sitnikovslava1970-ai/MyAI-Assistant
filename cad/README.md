@@ -16,13 +16,13 @@ pip install -r cad/requirements.txt
 uvicorn cad.api.main:app --reload
 ```
 
-Open http://127.0.0.1:8000/docs for the API. The first endpoint creates a sample mounting plate and exports STEP, STL and DXF.
+Open http://127.0.0.1:8000/docs for the API. The sample endpoint creates a mounting plate and exports STEP, STL and DXF. The FPV assembly endpoint `POST /cad/fpv-frame/step` exports the first-pass Classic-X frame assembly.
 
 ## Browser viewer
 Open `3d_viewer/index.html` in a modern browser, choose an STL file, and orbit/zoom the model. The viewer loads Three.js modules from jsDelivr, so an internet connection is required. For reliable module loading, serve the repository folder over HTTP rather than opening the file directly.
 
 ## Initial scope
-- Parametric solid modelling with build123d.
+- Parametric solid modelling with build123d, including a first-pass multi-part 7-inch Classic-X STEP assembly.
 - STEP and STL export from the same solid.
 - 2D DXF export with ezdxf.
 - STL preview with Three.js.
