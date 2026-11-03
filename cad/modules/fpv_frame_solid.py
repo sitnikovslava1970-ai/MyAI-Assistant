@@ -26,7 +26,6 @@ class FPVFrameSolidSpec:
     standoff_x_offset_mm: float = 65.0
     standoff_y_offset_mm: float = 27.5
     standoff_outer_diameter_mm: float = 6.0
-    standoff_height_mm: float = 25.0
 
     def validate(self, frame: FPVFrameSpec) -> None:
         frame.validate()
@@ -146,7 +145,7 @@ def build_fpv_frame_parts(
     lower = drill(lower, root_holes, solid.arm_root_hole_diameter_mm,
                   -1.0, frame.plate_thickness_mm + 2.0)
 
-    upper_z = solid.standoff_height_mm + frame.plate_thickness_mm
+    upper_z = frame.standoff_height_mm + frame.plate_thickness_mm
     upper = Pos(0, 0, upper_z) * Box(
         *plate_outline, frame.plate_thickness_mm,
         align=(Align.CENTER, Align.CENTER, Align.MIN),
@@ -193,7 +192,7 @@ def build_fpv_frame_parts(
     for index, (x, y) in enumerate(stands, start=1):
         parts[f"STANDOFF_{index}"] = Pos(x, y, stand_z) * Cylinder(
             solid.standoff_outer_diameter_mm / 2,
-            solid.standoff_height_mm,
+            frame.standoff_height_mm,
             align=(Align.CENTER, Align.CENTER, Align.MIN),
         )
     return parts
