@@ -40,11 +40,21 @@ These are geometric measurements only. They do not establish laminate strength o
 
 A fresh STEP package generated after the two geometry corrections was imported and checked again. **15 solids were inspected; 0 unintended volume intersections were found.** The former four intersection pairs are now clear in the exported STEP. This verifies the current solid geometry only; it does not verify fastener access, carbon strength or physical fit.
 
-## Corrective changes submitted for validation
+## Corrective changes and CI validation
 
 - Raised the nominal camera center by 2.5 mm to separate the camera envelope from the integrated lower foot pads.
 - Added 4 x 4 mm rear-corner relief notches to the camera base plate to clear the front-arm envelopes.
-- Added a solid-level pairwise intersection regression test. The first CI attempt exposed a test-harness issue (the CAD kernel returns `None` for disjoint solids); the test now treats that as a valid no-intersection result. The corrected run is pending.
+- Added pairwise solid-intersection regression tests; the corrected STEP export has no unintended solid overlaps.
+- CI result: 19 tests passed; STEP/STL and preliminary DXF export steps succeeded.
+- DXF profiles are generated for 7 flat parts (two center plates, four arms and camera base plate). The files use millimetres and OUTLINE, HOLES and NOTES layers; independent DXF audit found no errors or duplicate entities.
+
+**Camera side-plate caveat:** the current camera side-plate solids combine the vertical plate, horizontal foot pad and support web into one fused solid. This is not yet a validated flat 2D carbon cut profile. The side plates are therefore excluded from the preliminary DXF package pending a planar redesign with separate support brackets.
+
+## Earlier correction notes
+
+- Raised the nominal camera center by 2.5 mm to separate the camera envelope from the integrated lower foot pads.
+- Added 4 x 4 mm rear-corner relief notches to the camera base plate to clear the front-arm envelopes.
+- Added a solid-level pairwise intersection regression test. The first CI attempt exposed a test-harness issue (the CAD kernel returns `None` for disjoint solids); the test now treats that as a valid no-intersection result. The corrected run completed successfully.
 
 **Manufacturability caveat:** the current camera side-plate solids combine the vertical plate, horizontal foot pad and vertical web into one fused solid. This is not yet a validated flat 2D carbon cut profile. Before DXF release, split the camera side plates from their support brackets or redesign them as genuinely planar parts.
 
