@@ -40,6 +40,8 @@ def build_package(output_dir: Path) -> dict:
     )
 
     for part_name, shape in parts.items():
+        if part_name.startswith("REF_"):
+            continue
         export_step(shape, str(output_dir / f"{part_name}.step"))
         export_stl(
             shape,
@@ -59,6 +61,18 @@ def build_package(output_dir: Path) -> dict:
         )
     for index in range(1, 5):
         items.append(AssemblyItem(f"STANDOFF_{index}", f"Standoff {index}", 1, "material to confirm"))
+    items.extend([
+        AssemblyItem("CAMERA_BASE_PLATE", "DJI O4 Pro camera base plate", 1, "2 mm carbon fiber provisional", frame.plate_thickness_mm),
+        AssemblyItem("CAMERA_SIDE_LEFT", "DJI O4 Pro left adjustable side plate", 1, "2 mm carbon fiber provisional", solid.camera_side_plate_thickness_mm),
+        AssemblyItem("CAMERA_SIDE_RIGHT", "DJI O4 Pro right adjustable side plate", 1, "2 mm carbon fiber provisional", solid.camera_side_plate_thickness_mm),
+        AssemblyItem("ARM_ROOT_M3", "Arm-root M3 fastener", 16, "steel; length to confirm"),
+        AssemblyItem("MOTOR_M3", "Motor M3 fastener", 16, "steel; length to confirm"),
+        AssemblyItem("CAMERA_BASE_M3", "Camera base M3 fastener", 2, "steel; length to confirm"),
+        AssemblyItem("CAMERA_SIDE_M3", "Camera side-plate M3 fastener", 2, "steel; length to confirm"),
+        AssemblyItem("CAMERA_M2", "DJI O4 Pro camera M2 fastener", 4, "steel; length to confirm"),
+        AssemblyItem("AIR_UNIT_M2", "DJI O4 Pro air-unit M2 fastener", 4, "steel; length to confirm"),
+        AssemblyItem("BATTERY_STRAP", "Battery strap", 2, "webbing; length to confirm"),
+    ])
 
     manifest = {
         "project": "FPV_7in_ClassicX_LongRange_R01",
@@ -69,19 +83,38 @@ def build_package(output_dir: Path) -> dict:
             key: value for key, value in solid.__dict__.items()
         },
         "components": bill_of_materials(items),
-        "generated_parts": sorted(parts.keys()),
+        "generated_parts": sorted(name for name in parts if not name.startswith("REF_")),
+        "reference_geometry": [
+            {"part_id": "REF_CAMERA_O4_PRO", "description": "DJI O4 Air Unit Pro camera envelope; visual reference only"},
+            {"part_id": "REF_AIR_UNIT_O4_PRO", "description": "DJI O4 Air Unit Pro transmission module envelope; visual reference only"},
+        ],
+        "camera_mount": {
+            "nominal_angle_deg": frame.camera_angle_deg,
+            "camera_envelope_mm": [solid.camera_module_width_mm, solid.camera_module_depth_mm, solid.camera_module_height_mm],
+            "side_plate_thickness_mm": solid.camera_side_plate_thickness_mm,
+            "adjustment_slot_length_mm": solid.camera_mount_slot_length_mm,
+            "note": "Slot geometry is a preliminary adjustable concept; verify actual camera screw positions and fit against the physical unit."
+        },
+        "battery_strap_slots": {
+            "count": 2,
+            "center_coordinates_mm": [[-solid.battery_strap_slot_center_x_mm, 0.0], [solid.battery_strap_slot_center_x_mm, 0.0]],
+            "overall_length_mm": solid.battery_strap_slot_length_mm,
+            "width_mm": solid.battery_strap_slot_width_mm,
+        },
         "generated_files": [
             "FPV_7in_ClassicX_Assembly.step",
             "FPV_7in_ClassicX_Assembly.stl",
         ],
         "not_yet_modeled_or_verified": [
-            "DJI O4 camera side plates and actual camera clearance",
-            "battery strap slots and battery clearance",
-            "FC/ESC stack hardware and exact stack orientation",
-            "M3 fastener lengths, washers, nuts and tool access",
-            "carbon laminate edge distances and CNC cutter compensation",
-            "arm-root and motor-mount structural strength",
-            "vibration, fatigue, resonance and flight validation",
+            "Physical fit and exact screw positions of the DJI O4 Pro camera against the side-plate slots",
+            "Actual battery dimensions, strap path and battery-to-camera clearance",
+            "FC/ESC stack hardware, stack height and exact stack orientation",
+            "Air-unit antenna mounts and DJI-recommended 50 mm separation from carbon and other components",
+            "M2/M3 fastener lengths, washers, nuts, thread engagement and tool access",
+            "Carbon laminate edge distances, countersinks and CNC cutter compensation",
+            "Arm-root, camera-bracket and motor-mount structural strength",
+            "Cooling airflow for the DJI O4 Pro transmission module",
+            "Vibration, fatigue, resonance and flight validation",
         ],
         "manufacturing_warning": (
             "Prototype geometry only. Do not release for CNC manufacture or flight "
