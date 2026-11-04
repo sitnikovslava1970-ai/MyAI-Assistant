@@ -2,11 +2,15 @@ name: CAD checks
 
 on:
   push:
+    branches:
+      - main
     paths:
       - 'cad/**'
       - 'tests/**'
       - '.github/workflows/cad-tests.yml'
   pull_request:
+    branches:
+      - main
     paths:
       - 'cad/**'
       - 'tests/**'
