@@ -305,6 +305,87 @@ def build_fpv_frame_parts(
             frame.standoff_height_mm,
             align=(Align.CENTER, Align.CENTER, Align.MIN),
         )
+    # Front camera bracket: fixed nominal angle with short adjustment slots.
+    camera_angle = frame.camera_angle_deg
+    camera_y = solid.camera_center_y_mm
+    camera_z = solid.camera_center_z_mm
+    side_x = (
+        solid.camera_module_width_mm / 2
+        + solid.camera_side_clearance_mm
+        + solid.camera_side_plate_thickness_mm / 2
+    )
+    base_plate = Pos(0, solid.camera_base_center_y_mm, frame.plate_thickness_mm) * Box(
+        solid.camera_base_width_mm, solid.camera_base_length_mm,
+        frame.plate_thickness_mm,
+        align=(Align.CENTER, Align.CENTER, Align.MIN),
+    )
+    base_plate = drill(
+        base_plate, camera_base_holes, solid.camera_base_hole_diameter_mm,
+        frame.plate_thickness_mm - 1.0, frame.plate_thickness_mm + 2.0,
+    )
+    base_plate = drill(
+        base_plate, camera_foot_holes, solid.camera_base_hole_diameter_mm,
+        frame.plate_thickness_mm - 1.0, frame.plate_thickness_mm + 2.0,
+    )
+    parts["CAMERA_BASE_PLATE"] = base_plate
+
+    for side_name, x in (("LEFT", -side_x), ("RIGHT", side_x)):
+        local = Pos(x, camera_y, camera_z) * Rot(camera_angle, 0, 0)
+        side_plate = local * Box(
+            solid.camera_side_plate_thickness_mm,
+            solid.camera_module_depth_mm,
+            solid.camera_module_height_mm,
+            align=(Align.CENTER, Align.CENTER, Align.CENTER),
+        )
+        straight = solid.camera_mount_slot_length_mm - solid.camera_mount_slot_width_mm
+        for z_offset in (-solid.camera_mount_hole_pitch_mm / 2,
+                         solid.camera_mount_hole_pitch_mm / 2):
+            slot_box = local * Pos(0, 0, z_offset) * Box(
+                solid.camera_side_plate_thickness_mm + 2.0,
+                straight, solid.camera_mount_slot_width_mm,
+                align=(Align.CENTER, Align.CENTER, Align.CENTER),
+            )
+            side_plate = side_plate - slot_box
+            for y_offset in (-straight / 2, straight / 2):
+                slot_end = (
+                    local * Pos(0, y_offset, z_offset) * Rot(0, 90, 0)
+                    * Cylinder(
+                        solid.camera_mount_slot_width_mm / 2,
+                        solid.camera_side_plate_thickness_mm + 2.0,
+                        align=(Align.CENTER, Align.CENTER, Align.CENTER),
+                    )
+                )
+                side_plate = side_plate - slot_end
+        foot_pad = Pos(x, solid.camera_side_foot_y_mm, frame.plate_thickness_mm) * Box(
+            6.0, 20.0, 2.0,
+            align=(Align.CENTER, Align.CENTER, Align.MIN),
+        )
+        web = Pos(x, solid.camera_side_foot_y_mm, frame.plate_thickness_mm + 2.0) * Box(
+            solid.camera_side_plate_thickness_mm, 20.0, 3.2,
+            align=(Align.CENTER, Align.CENTER, Align.MIN),
+        )
+        side_plate = side_plate + foot_pad + web
+        side_plate = drill(
+            side_plate, [(x, solid.camera_side_foot_y_mm)],
+            solid.camera_base_hole_diameter_mm, frame.plate_thickness_mm - 1.0, 7.0,
+        )
+        parts[f"CAMERA_SIDE_{side_name}"] = side_plate
+
+    # REF_ components are visual envelopes only, not manufactured parts.
+    parts["REF_CAMERA_O4_PRO"] = (
+        Pos(0, camera_y, camera_z) * Rot(camera_angle, 0, 0)
+        * Box(
+            solid.camera_module_width_mm,
+            solid.camera_module_depth_mm,
+            solid.camera_module_height_mm,
+            align=(Align.CENTER, Align.CENTER, Align.CENTER),
+        )
+    )
+    parts["REF_AIR_UNIT_O4_PRO"] = Pos(
+        0, solid.air_unit_center_y_mm, upper_z - 13.0
+    ) * Box(33.5, 33.5, 13.0,
+            align=(Align.CENTER, Align.CENTER, Align.MIN))
+
     return parts
 
 
