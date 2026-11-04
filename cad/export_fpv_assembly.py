@@ -18,6 +18,7 @@ from cad.modules.fpv_frame import FPVFrameSpec
 from cad.modules.fpv_frame_solid import (
     FPVFrameSolidSpec,
     build_fpv_frame_parts,
+    camera_side_foot_centers,
 )
 
 
@@ -105,12 +106,11 @@ def build_package(output_dir: Path) -> dict:
             "adjustment_slot_length_mm": solid.camera_mount_slot_length_mm,
             "side_panels_are_separate_flat_parts": True,
             "support_brackets": ["CAMERA_SUPPORT_LEFT", "CAMERA_SUPPORT_RIGHT"],
-            "support_foot_mount_holes": camera_foot_holes if False else [],
             "note": "Side panels are separate 2 mm carbon parts; angled support brackets are separate 3D parts. Verify actual camera screw positions and physical fit."
         },
         "camera_support_mount": {
             "support_foot_hole_centers_mm": [
-                [x, y] for x, y in __import__("cad.modules.fpv_frame_solid", fromlist=["camera_side_foot_centers"]).camera_side_foot_centers(solid)
+                [x, y] for x, y in camera_side_foot_centers(solid)
             ],
             "fastener_count": 4,
             "foot_thickness_mm": solid.camera_support_foot_thickness_mm,
