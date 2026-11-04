@@ -59,13 +59,51 @@ A fresh STEP package generated after the two geometry corrections was imported a
 
 **Remaining camera verification:** confirm the physical O4 Pro camera screw pattern against the slots, check fastener tool access and cable bend radius, and validate the bracket stiffness and foot edge distances before CNC or flight use.
 
+## R06 — assembly clearance verification (latest exported STEP)
+
+**Artifact:** GitHub Actions run `41846081883`, branch `work/fpv-7in-assembly-package`, commit `69b7ef23c7cd54d75ee6ae9a8b5389bac6d4bd3e`.  
+**Method:** imported the exported STEP assembly and all 15 physical component STEP files; checked pairwise solid intersection volumes and minimum shape distances. Reference envelopes for the DJI O4 Pro camera and transmission module were also checked against each physical component.
+
+### Results
+
+- 15 physical components and 2 reference envelopes were present in the exported assembly.
+- No positive-volume intersections were found between any pair of physical components.
+- No positive-volume intersections were found between the reference envelopes and physical components.
+- The closest non-contact clearances are:
+
+| Pair | Minimum distance |
+|---|---:|
+| Camera base plate — front-left/front-right arms | 1.253 mm |
+| DJI O4 Pro transmission-module envelope — rear-left/rear-right arms | 2.000 mm |
+| Camera side panels — camera-module envelope | 0.700 mm per side |
+| Camera base plate — camera side panels | 2.511 mm |
+| Upper center plate — camera side panels | 3.031 mm |
+
+### Intended contacts
+
+- Lower center plate to arm roots and camera base plate: face-to-face mounting contact.
+- Lower/upper plates to standoffs: face-to-face mounting contact.
+- Camera support brackets to camera base plate and side panels: mounting contact.
+- DJI O4 Pro transmission-module envelope to underside of lower plate: intended mounting contact.
+
+### Engineering interpretation / open checks
+
+- The 1.253 mm camera-base-to-arm gap is small for a carbon part in a vibrating assembly. Keep it as a review warning; consider increasing the rear-corner relief only after checking remaining material around the M3 holes and the camera-base stiffness.
+- The 2.0 mm air-unit-to-rear-arm gap is a geometric clearance only. It does not provide evidence of sufficient cooling or antenna separation.
+- The 0.7 mm camera side clearance is nominal CAD clearance. Confirm the actual camera body, screw heads, washers and manufacturing tolerances.
+- The support brackets touch the camera reference envelope at their intended support interface but do not penetrate it by volume. Verify the actual housing contact surface and ensure no contact with cable or connector features.
+- Battery geometry, battery strap thickness/path, FC/ESC stack bodies, wiring, antenna mounts, connectors and fastener heads are not represented as full solids. Their clearances are **not verified**.
+- DJI antenna separation from carbon must be checked against the actual antenna locations and routing; the current model does not establish the required separation.
+
+**R06 status:** geometric no-intersection check passed. This is not a physical-fit, structural, thermal, vibration, CNC or flight approval.
+
 ## Earlier correction notes
 
 - Raised the nominal camera center by 2.5 mm to separate the camera envelope from the integrated lower foot pads.
 - Added 4 x 4 mm rear-corner relief notches to the camera base plate to clear the front-arm envelopes.
 - Added a solid-level pairwise intersection regression test. The first CI attempt exposed a test-harness issue (the CAD kernel returns `None` for disjoint solids); the test now treats that as a valid no-intersection result. The corrected run completed successfully.
 
-**Manufacturability caveat:** the current camera side-plate solids combine the vertical plate, horizontal foot pad and vertical web into one fused solid. This is not yet a validated flat 2D carbon cut profile. Before DXF release, split the camera side plates from their support brackets or redesign them as genuinely planar parts.
+**Historical note:** this caveat applied before the R06 redesign. In R06, the two carbon side panels are separate planar parts and the angled support brackets are separate 3D components.
 
 ## Next engineering actions
 
