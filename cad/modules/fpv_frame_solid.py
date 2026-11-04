@@ -364,7 +364,7 @@ def build_fpv_frame_parts(
     support_bottom_z = (
         frame.plate_thickness_mm * 2 + solid.camera_support_foot_thickness_mm - camera_z
     ) / cos(camera_angle * 3.141592653589793 / 180.0)
-    support_web_height = support_bottom_z - support_top_z
+    support_web_height = support_top_z - support_bottom_z
     if support_web_height <= 0:
         raise ValueError("Camera support web has invalid height")
     support_web_center_z = (support_bottom_z + support_top_z) / 2
