@@ -180,7 +180,7 @@ def build_fpv_frame_parts(
     frame: FPVFrameSpec | None = None,
     solid: FPVFrameSolidSpec | None = None,
 ) -> dict[str, Any]:
-    """Build separate STEP-ready solids: plates, arms and four standoffs."""
+    """Build the frame, camera bracket and reference envelopes as STEP-ready solids."""
     # Lazy import avoids loading OCP for dimension-only use and unit tests.
     from build123d import Align, Box, Cylinder, Pos, Rot
 
