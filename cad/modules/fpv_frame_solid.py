@@ -220,6 +220,20 @@ def build_fpv_frame_parts(
     root_holes_by_arm = arm_root_bolt_centers(frame, solid)
     root_holes = [point for points in root_holes_by_arm.values() for point in points]
     stands = standoff_centers(solid)
+    strap_slots = [(-solid.battery_strap_slot_center_x_mm, 0.0),
+                   (solid.battery_strap_slot_center_x_mm, 0.0)]
+    air_half = solid.air_unit_mount_spacing_mm / 2
+    air_y = solid.air_unit_center_y_mm
+    air_holes = [(-air_half, air_y-air_half), (-air_half, air_y+air_half),
+                 (air_half, air_y-air_half), (air_half, air_y+air_half)]
+    camera_base_holes = [
+        (-solid.camera_base_mount_spacing_x_mm/2, solid.camera_base_mount_y_mm),
+        (solid.camera_base_mount_spacing_x_mm/2, solid.camera_base_mount_y_mm),
+    ]
+    camera_foot_holes = [
+        (-solid.camera_side_foot_spacing_x_mm/2, solid.camera_side_foot_y_mm),
+        (solid.camera_side_foot_spacing_x_mm/2, solid.camera_side_foot_y_mm),
+    ]
 
     plate_outline = (frame.top_plate_length_mm, frame.plate_width_mm)
     lower = Box(*plate_outline, frame.plate_thickness_mm,
@@ -230,6 +244,11 @@ def build_fpv_frame_parts(
                   -1.0, frame.plate_thickness_mm + 2.0)
     lower = drill(lower, root_holes, solid.arm_root_hole_diameter_mm,
                   -1.0, frame.plate_thickness_mm + 2.0)
+    lower = drill(lower, camera_base_holes, solid.camera_base_hole_diameter_mm,
+                  -1.0, frame.plate_thickness_mm + 2.0)
+    lower = add_rounded_slots(lower, strap_slots, solid.battery_strap_slot_length_mm,
+                              solid.battery_strap_slot_width_mm, -1.0,
+                              frame.plate_thickness_mm + 2.0)
 
     upper_z = frame.standoff_height_mm + frame.plate_thickness_mm
     upper = Pos(0, 0, upper_z) * Box(
@@ -240,8 +259,13 @@ def build_fpv_frame_parts(
                   upper_z - 1.0, frame.plate_thickness_mm + 2.0)
     upper = drill(upper, stands, solid.standoff_hole_diameter_mm,
                   upper_z - 1.0, frame.plate_thickness_mm + 2.0)
+    upper = drill(upper, air_holes, solid.air_unit_hole_diameter_mm,
+                  upper_z - 1.0, frame.plate_thickness_mm + 2.0)
+    upper = add_rounded_slots(upper, strap_slots, solid.battery_strap_slot_length_mm,
+                              solid.battery_strap_slot_width_mm, upper_z - 1.0,
+                              frame.plate_thickness_mm + 2.0)
 
-    parts: dict[str, Any] = {"PLATE_BOTTOM": lower, "PLATE_TOP": upper}
+    parts: dict[str, Any> = {"PLATE_BOTTOM": lower, "PLATE_TOP": upper}
     arm_z = frame.plate_thickness_mm
     for name, (mx, my) in frame.motor_centers().items():
         root_x, root_y = roots[name]
