@@ -128,3 +128,19 @@ def test_o4_mount_holes_are_clear_of_both_fc_stack_patterns():
         for sx, sy in stack_centers
     )
     assert minimum_clearance > 0
+
+
+
+def test_o4_mount_holes_are_clear_of_arm_root_fasteners():
+    frame = FPVFrameSpec(arm_width_mm=18.0)
+    solid = FPVFrameSolidSpec()
+    root_holes = [
+        point
+        for points in arm_root_bolt_centers(frame, solid).values()
+        for point in points
+    ]
+    for x, y in air_unit_mount_centers(solid):
+        nearest = min(((x-rx)**2 + (y-ry)**2)**0.5 for rx, ry in root_holes)
+        assert nearest > (
+            solid.air_unit_hole_diameter_mm + solid.arm_root_hole_diameter_mm
+        ) / 2
