@@ -180,7 +180,7 @@ def export_dxf_package(output_dir: Path) -> dict:
         "The nine exported parts are the two center plates, four arms, camera base plate and two camera side panels.\n\n"
         "**Not a CNC release.** Cutter compensation is not applied. Camera side panels are exported "
         "in their local flat plane (DXF X=panel-local Y, DXF Y=panel-local Z); angled 3D support "
-        "brackets are excluded. The 160 x 75 mm plate orientation remains a model assumption.\\n",
+        "brackets are excluded. The 160 x 75 mm plate orientation remains a model assumption.\n",
         encoding="utf-8",
     )
     return manifest
