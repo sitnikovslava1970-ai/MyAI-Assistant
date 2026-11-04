@@ -86,8 +86,16 @@ def build_package(output_dir: Path) -> dict:
         "generated_parts": sorted(name for name in parts if not name.startswith("REF_")),
         "reference_geometry": [
             {"part_id": "REF_CAMERA_O4_PRO", "description": "DJI O4 Air Unit Pro camera envelope; visual reference only"},
-            {"part_id": "REF_AIR_UNIT_O4_PRO", "description": "DJI O4 Air Unit Pro transmission module envelope; visual reference only"},
+            {"part_id": "REF_AIR_UNIT_O4_PRO", "description": "DJI O4 Air Unit Pro transmission module envelope below the lower plate; visual reference only"},
         ],
+        "air_unit_mount": {
+            "mounting_face": "underside of lower center plate",
+            "hole_spacing_mm": solid.air_unit_mount_spacing_mm,
+            "hole_diameter_mm": solid.air_unit_hole_diameter_mm,
+            "module_envelope_mm": [33.5, 33.5, 13.0],
+            "center_y_mm": solid.air_unit_center_y_mm,
+            "note": "Reference envelope only; verify antenna routing, heat transfer and clearance to the rear arms."
+        },
         "camera_mount": {
             "nominal_angle_deg": frame.camera_angle_deg,
             "camera_envelope_mm": [solid.camera_module_width_mm, solid.camera_module_depth_mm, solid.camera_module_height_mm],
