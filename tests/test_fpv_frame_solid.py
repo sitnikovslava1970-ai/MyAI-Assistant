@@ -109,3 +109,22 @@ def test_camera_base_mount_holes_clear_arm_root_bolts():
         assert nearest > (
             solid.camera_base_hole_diameter_mm + solid.arm_root_hole_diameter_mm
         ) / 2
+
+
+
+def test_o4_mount_holes_are_clear_of_both_fc_stack_patterns():
+    solid = FPVFrameSolidSpec()
+    stack_centers = []
+    for spacing in (20.0, 30.5):
+        half = spacing / 2
+        stack_centers.extend([
+            (-half, -half), (-half, half), (half, -half), (half, half)
+        ])
+    air_holes = air_unit_mount_centers(solid)
+    minimum_clearance = min(
+        ((ax-sx)**2 + (ay-sy)**2)**0.5
+        - (solid.air_unit_hole_diameter_mm + solid.stack_hole_diameter_mm) / 2
+        for ax, ay in air_holes
+        for sx, sy in stack_centers
+    )
+    assert minimum_clearance > 0
