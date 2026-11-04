@@ -9,6 +9,7 @@ from cad.modules.fpv_frame_solid import (
     battery_strap_slot_centers,
     air_unit_mount_centers,
     camera_base_mount_centers,
+    camera_side_foot_centers,
 )
 
 
@@ -144,3 +145,16 @@ def test_o4_mount_holes_are_clear_of_arm_root_fasteners():
         assert nearest > (
             solid.air_unit_hole_diameter_mm + solid.arm_root_hole_diameter_mm
         ) / 2
+
+
+
+def test_camera_support_foot_mount_pattern_has_four_m3_holes_inside_base_plate():
+    frame = FPVFrameSpec(arm_width_mm=18.0)
+    solid = FPVFrameSolidSpec()
+    holes = camera_side_foot_centers(solid)
+    assert len(holes) == 4
+    assert sorted(x for x, _ in holes) == pytest.approx([-13.5, -13.5, 13.5, 13.5])
+    for x, y in holes:
+        assert abs(x) + solid.camera_base_hole_diameter_mm / 2 < solid.camera_base_width_mm / 2
+        assert solid.camera_base_center_y_mm - solid.camera_base_length_mm / 2 + solid.camera_base_hole_diameter_mm / 2 < y
+        assert y < solid.camera_base_center_y_mm + solid.camera_base_length_mm / 2 - solid.camera_base_hole_diameter_mm / 2
