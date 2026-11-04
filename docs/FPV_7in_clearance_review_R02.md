@@ -79,6 +79,22 @@ A fresh STEP package generated after the two geometry corrections was imported a
 | Camera base plate — camera side panels | 2.511 mm |
 | Upper center plate — camera side panels | 3.031 mm |
 
+### R06 fastener-hole edge-distance screening
+
+The following are geometric distances from the current R06 hole centers to the nearest nominal part edge. “Remaining material” is center-to-edge distance minus the hole radius; it is not a laminate-strength acceptance criterion.
+
+| Feature | Hole | Minimum center-to-edge | Nominal remaining material |
+|---|---:|---:|---:|
+| Arm-root holes in center plate | Ø3.2 mm | 5.303 mm | 3.703 mm |
+| DJI O4 transmission-module holes in lower plate | Ø2.2 mm | 4.750 mm | 3.650 mm |
+| Camera-base mounting holes in lower plate | Ø3.2 mm | 4.000 mm | 2.400 mm |
+| Camera-support foot holes in camera base plate | Ø3.2 mm | 4.500 mm | 2.900 mm |
+| Motor holes in 28 mm motor pads | Ø3.2 mm | 4.500 mm | 2.900 mm |
+| Arm-root holes across 18 mm arm width | Ø3.2 mm | 4.500 mm | 2.900 mm |
+| Standoff holes in center plates | Ø3.2 mm | 10.000 mm | 8.400 mm |
+
+The camera-base mounting holes in the lower plate have the smallest nominal remaining edge material in this screening (2.4 mm). Review this location against the chosen carbon laminate, washer/head diameter, local loading and manufacturing tolerances. Do not infer structural adequacy from the table.
+
 ### Intended contacts
 
 - Lower center plate to arm roots and camera base plate: face-to-face mounting contact.
