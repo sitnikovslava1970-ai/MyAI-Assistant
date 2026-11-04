@@ -27,6 +27,30 @@ class FPVFrameSolidSpec:
     standoff_y_offset_mm: float = 27.5
     standoff_outer_diameter_mm: float = 6.0
     standoff_hole_diameter_mm: float = 3.2
+    battery_strap_slot_center_x_mm: float = 35.0
+    battery_strap_slot_length_mm: float = 24.0
+    battery_strap_slot_width_mm: float = 4.0
+    air_unit_mount_spacing_mm: float = 25.5
+    air_unit_hole_diameter_mm: float = 2.2
+    air_unit_center_y_mm: float = -20.0
+    camera_module_width_mm: float = 25.55
+    camera_module_depth_mm: float = 20.0
+    camera_module_height_mm: float = 23.3
+    camera_side_clearance_mm: float = 0.7
+    camera_side_plate_thickness_mm: float = 2.0
+    camera_mount_hole_pitch_mm: float = 16.0
+    camera_mount_slot_width_mm: float = 2.2
+    camera_mount_slot_length_mm: float = 4.5
+    camera_center_y_mm: float = 55.0
+    camera_center_z_mm: float = 17.1
+    camera_base_width_mm: float = 36.0
+    camera_base_length_mm: float = 50.0
+    camera_base_center_y_mm: float = 55.5
+    camera_base_mount_spacing_x_mm: float = 24.0
+    camera_base_mount_y_mm: float = 33.5
+    camera_side_foot_spacing_x_mm: float = 29.0
+    camera_side_foot_y_mm: float = 55.0
+    camera_base_hole_diameter_mm: float = 3.2
 
     def validate(self, frame: FPVFrameSpec) -> None:
         frame.validate()
