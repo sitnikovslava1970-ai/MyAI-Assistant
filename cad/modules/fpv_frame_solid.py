@@ -193,6 +193,22 @@ def build_fpv_frame_parts(
             shape = shape - cutter
         return shape
 
+    def add_rounded_slots(shape: Any, centers: list[tuple[float, float]],
+                          length: float, width: float, z0: float, depth: float) -> Any:
+        radius = width / 2
+        straight = length - width
+        for x, y in centers:
+            shape = shape - (Pos(x, y, z0) * Box(
+                width, straight, depth,
+                align=(Align.CENTER, Align.CENTER, Align.MIN),
+            ))
+            for end_y in (y - straight / 2, y + straight / 2):
+                shape = shape - (Pos(x, end_y, z0) * Cylinder(
+                    radius, depth,
+                    align=(Align.CENTER, Align.CENTER, Align.MIN),
+                ))
+        return shape
+
     # Two stack patterns (20 x 20 and 30.5 x 30.5) share the center origin.\n    # Accessory features are added in the assembly export layer.
     stack_centers = []
     for spacing in (20.0, 30.5):
