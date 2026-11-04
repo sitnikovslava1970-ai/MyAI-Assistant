@@ -69,6 +69,16 @@ class FPVFrameSolidSpec:
             raise ValueError("Standoff X position is outside the center plate")
         if self.standoff_y_offset_mm >= frame.plate_width_mm / 2:
             raise ValueError("Standoff Y position is outside the center plate")
+        if self.battery_strap_slot_length_mm <= self.battery_strap_slot_width_mm:
+            raise ValueError("Battery strap slot length must exceed its width")
+        if self.battery_strap_slot_center_x_mm + self.battery_strap_slot_width_mm / 2 >= frame.top_plate_length_mm / 2:
+            raise ValueError("Battery strap slot is outside the center plate")
+        if self.air_unit_mount_spacing_mm + self.air_unit_hole_diameter_mm >= min(frame.top_plate_length_mm, frame.plate_width_mm):
+            raise ValueError("DJI O4 mounting pattern does not fit the center plate")
+        if self.camera_mount_slot_length_mm < self.camera_mount_slot_width_mm:
+            raise ValueError("Camera adjustment slot length must exceed its width")
+        if self.camera_base_width_mm <= self.camera_module_width_mm + 2 * self.camera_side_clearance_mm:
+            raise ValueError("Camera base is too narrow for the camera bracket")
 
 
 def arm_root_centers(frame: FPVFrameSpec) -> dict[str, tuple[float, float]]:
