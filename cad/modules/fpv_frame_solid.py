@@ -193,7 +193,7 @@ def build_fpv_frame_parts(
             shape = shape - cutter
         return shape
 
-    # Two stack patterns (20 x 20 and 30.5 x 30.5) share the center origin.
+    # Two stack patterns (20 x 20 and 30.5 x 30.5) share the center origin.\n    # Accessory features are added in the assembly export layer.
     stack_centers = []
     for spacing in (20.0, 30.5):
         half = spacing / 2
