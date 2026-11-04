@@ -55,6 +55,8 @@ class FPVFrameSolidSpec:
     def validate(self, frame: FPVFrameSpec) -> None:
         frame.validate()
         for name, value in self.__dict__.items():
+            if name == "air_unit_center_y_mm":
+                continue
             if value <= 0:
                 raise ValueError(f"{name} must be positive")
         if self.arm_root_overlap_mm >= frame.wheelbase_mm / 2:
@@ -75,6 +77,10 @@ class FPVFrameSolidSpec:
             raise ValueError("Battery strap slot is outside the center plate")
         if self.air_unit_mount_spacing_mm + self.air_unit_hole_diameter_mm >= min(frame.top_plate_length_mm, frame.plate_width_mm):
             raise ValueError("DJI O4 mounting pattern does not fit the center plate")
+        if abs(self.air_unit_center_y_mm) + self.air_unit_mount_spacing_mm / 2 + self.air_unit_hole_diameter_mm / 2 > frame.plate_width_mm / 2:
+            raise ValueError("DJI O4 mounting pattern is outside the center plate")
+        if abs(self.camera_base_mount_y_mm) + self.camera_base_hole_diameter_mm / 2 > frame.plate_width_mm / 2:
+            raise ValueError("Camera base mounting holes are outside the lower plate")
         if self.camera_mount_slot_length_mm < self.camera_mount_slot_width_mm:
             raise ValueError("Camera adjustment slot length must exceed its width")
         if self.camera_base_width_mm <= self.camera_module_width_mm + 2 * self.camera_side_clearance_mm:
@@ -209,7 +215,7 @@ def build_fpv_frame_parts(
                 ))
         return shape
 
-    # Two stack patterns (20 x 20 and 30.5 x 30.5) share the center origin.\n    # Accessory features are added in the assembly export layer.
+    # Two stack patterns (20 x 20 and 30.5 x 30.5) share the center origin.
     stack_centers = []
     for spacing in (20.0, 30.5):
         half = spacing / 2
@@ -265,7 +271,7 @@ def build_fpv_frame_parts(
                               solid.battery_strap_slot_width_mm, upper_z - 1.0,
                               frame.plate_thickness_mm + 2.0)
 
-    parts: dict[str, Any> = {"PLATE_BOTTOM": lower, "PLATE_TOP": upper}
+    parts: dict[str, Any] = {"PLATE_BOTTOM": lower, "PLATE_TOP": upper}
     arm_z = frame.plate_thickness_mm
     for name, (mx, my) in frame.motor_centers().items():
         root_x, root_y = roots[name]
