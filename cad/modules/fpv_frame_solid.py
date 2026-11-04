@@ -145,6 +145,31 @@ def standoff_centers(solid: FPVFrameSolidSpec | None = None) -> list[tuple[float
     ]
 
 
+
+def battery_strap_slot_centers(solid: FPVFrameSolidSpec | None = None) -> list[tuple[float, float]]:
+    solid = solid or FPVFrameSolidSpec()
+    return [(-solid.battery_strap_slot_center_x_mm, 0.0),
+            (solid.battery_strap_slot_center_x_mm, 0.0)]
+
+
+def air_unit_mount_centers(solid: FPVFrameSolidSpec | None = None) -> list[tuple[float, float]]:
+    solid = solid or FPVFrameSolidSpec()
+    half = solid.air_unit_mount_spacing_mm / 2
+    cy = solid.air_unit_center_y_mm
+    return [(-half, cy-half), (-half, cy+half), (half, cy-half), (half, cy+half)]
+
+
+def camera_base_mount_centers(solid: FPVFrameSolidSpec | None = None) -> list[tuple[float, float]]:
+    solid = solid or FPVFrameSolidSpec()
+    half = solid.camera_base_mount_spacing_x_mm / 2
+    return [(-half, solid.camera_base_mount_y_mm), (half, solid.camera_base_mount_y_mm)]
+
+
+def camera_side_foot_centers(solid: FPVFrameSolidSpec | None = None) -> list[tuple[float, float]]:
+    solid = solid or FPVFrameSolidSpec()
+    half = solid.camera_side_foot_spacing_x_mm / 2
+    return [(-half, solid.camera_side_foot_y_mm), (half, solid.camera_side_foot_y_mm)]
+
 def build_fpv_frame_parts(
     frame: FPVFrameSpec | None = None,
     solid: FPVFrameSolidSpec | None = None,
