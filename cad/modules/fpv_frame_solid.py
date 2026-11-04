@@ -20,7 +20,7 @@ class FPVFrameSolidSpec:
     arm_root_overlap_mm: float = 30.0
     motor_pad_size_mm: float = 28.0
     arm_root_hole_diameter_mm: float = 3.2
-    arm_root_hole_longitudinal_pitch_mm: float = 16.0
+    arm_root_hole_longitudinal_pitch_mm: float = 12.0
     arm_root_hole_transverse_spacing_mm: float = 9.0
     stack_hole_diameter_mm: float = 3.2
     standoff_x_offset_mm: float = 65.0
@@ -35,6 +35,8 @@ class FPVFrameSolidSpec:
                 raise ValueError(f"{name} must be positive")
         if self.arm_root_overlap_mm >= frame.wheelbase_mm / 2:
             raise ValueError("Arm root overlap is too large")
+        if 1.5 * self.arm_root_hole_longitudinal_pitch_mm >= self.arm_root_overlap_mm:
+            raise ValueError("Arm root hole stations must remain inside the arm overlap")
         if self.motor_pad_size_mm < frame.motor_mount_spacing_mm + frame.motor_hole_diameter_mm:
             raise ValueError("Motor pad is too small for the motor hole pattern")
         if self.arm_root_hole_transverse_spacing_mm + self.arm_root_hole_diameter_mm >= frame.arm_width_mm:
@@ -87,6 +89,14 @@ def arm_root_bolt_centers(
                     rx + ux * station + nx * side * solid.arm_root_hole_transverse_spacing_mm / 2,
                     ry + uy * station + ny * side * solid.arm_root_hole_transverse_spacing_mm / 2,
                 ))
+        plate_half_x = frame.top_plate_length_mm / 2
+        plate_half_y = frame.plate_width_mm / 2
+        hole_radius = solid.arm_root_hole_diameter_mm / 2
+        for x, y in points:
+            if abs(x) + hole_radius > plate_half_x or abs(y) + hole_radius > plate_half_y:
+                raise ValueError(
+                    f"Arm root bolt hole for {name} breaks the center-plate edge"
+                )
         result[name] = points
     return result
 
