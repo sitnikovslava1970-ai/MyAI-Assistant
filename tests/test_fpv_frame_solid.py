@@ -6,6 +6,9 @@ from cad.modules.fpv_frame_solid import (
     arm_root_bolt_centers,
     arm_root_centers,
     standoff_centers,
+    battery_strap_slot_centers,
+    air_unit_mount_centers,
+    camera_base_mount_centers,
 )
 
 
@@ -59,3 +62,50 @@ def test_root_bolt_holes_keep_full_diameter_inside_lower_plate():
         for x, y in points:
             assert abs(x) + radius <= half_x
             assert abs(y) + radius <= half_y
+
+
+
+def test_accessory_mount_patterns_fit_their_plate_envelopes():
+    frame = FPVFrameSpec(arm_width_mm=18.0)
+    solid = FPVFrameSolidSpec()
+    solid.validate(frame)
+
+    for x, y in battery_strap_slot_centers(solid):
+        assert abs(x) + solid.battery_strap_slot_width_mm / 2 < frame.top_plate_length_mm / 2
+        assert abs(y) + solid.battery_strap_slot_length_mm / 2 < frame.plate_width_mm / 2
+
+    for x, y in air_unit_mount_centers(solid):
+        assert abs(x) + solid.air_unit_hole_diameter_mm / 2 < frame.top_plate_length_mm / 2
+        assert abs(y) + solid.air_unit_hole_diameter_mm / 2 < frame.plate_width_mm / 2
+
+    for x, y in camera_base_mount_centers(solid):
+        assert abs(x) + solid.camera_base_hole_diameter_mm / 2 < frame.top_plate_length_mm / 2
+        assert abs(y) + solid.camera_base_hole_diameter_mm / 2 < frame.plate_width_mm / 2
+
+
+def test_camera_bracket_side_spacing_clears_o4_pro_camera_envelope():
+    solid = FPVFrameSolidSpec()
+    side_center = (
+        solid.camera_module_width_mm / 2
+        + solid.camera_side_clearance_mm
+        + solid.camera_side_plate_thickness_mm / 2
+    )
+    inner_face = side_center - solid.camera_side_plate_thickness_mm / 2
+    assert inner_face - solid.camera_module_width_mm / 2 == pytest.approx(
+        solid.camera_side_clearance_mm
+    )
+
+
+def test_camera_base_mount_holes_clear_arm_root_bolts():
+    frame = FPVFrameSpec(arm_width_mm=18.0)
+    solid = FPVFrameSolidSpec()
+    root_holes = [
+        point
+        for points in arm_root_bolt_centers(frame, solid).values()
+        for point in points
+    ]
+    for x, y in camera_base_mount_centers(solid):
+        nearest = min(((x-rx)**2 + (y-ry)**2)**0.5 for rx, ry in root_holes)
+        assert nearest > (
+            solid.camera_base_hole_diameter_mm + solid.arm_root_hole_diameter_mm
+        ) / 2
