@@ -252,6 +252,8 @@ def build_fpv_frame_parts(
                   -1.0, frame.plate_thickness_mm + 2.0)
     lower = drill(lower, camera_base_holes, solid.camera_base_hole_diameter_mm,
                   -1.0, frame.plate_thickness_mm + 2.0)
+    lower = drill(lower, air_holes, solid.air_unit_hole_diameter_mm,
+                  -1.0, frame.plate_thickness_mm + 2.0)
     lower = add_rounded_slots(lower, strap_slots, solid.battery_strap_slot_length_mm,
                               solid.battery_strap_slot_width_mm, -1.0,
                               frame.plate_thickness_mm + 2.0)
@@ -264,8 +266,6 @@ def build_fpv_frame_parts(
     upper = drill(upper, stack_centers, solid.stack_hole_diameter_mm,
                   upper_z - 1.0, frame.plate_thickness_mm + 2.0)
     upper = drill(upper, stands, solid.standoff_hole_diameter_mm,
-                  upper_z - 1.0, frame.plate_thickness_mm + 2.0)
-    upper = drill(upper, air_holes, solid.air_unit_hole_diameter_mm,
                   upper_z - 1.0, frame.plate_thickness_mm + 2.0)
     upper = add_rounded_slots(upper, strap_slots, solid.battery_strap_slot_length_mm,
                               solid.battery_strap_slot_width_mm, upper_z - 1.0,
@@ -388,7 +388,7 @@ def build_fpv_frame_parts(
         )
     )
     parts["REF_AIR_UNIT_O4_PRO"] = Pos(
-        0, solid.air_unit_center_y_mm, upper_z - 13.0
+        0, solid.air_unit_center_y_mm, -13.0
     ) * Box(33.5, 33.5, 13.0,
             align=(Align.CENTER, Align.CENTER, Align.MIN))
 
