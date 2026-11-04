@@ -36,6 +36,14 @@ The side-plate intersections occur where the integrated lower foot pads enter th
 
 These are geometric measurements only. They do not establish laminate strength or suitability for flight loads.
 
+## Corrective changes submitted for validation
+
+- Raised the nominal camera center by 2.5 mm to separate the camera envelope from the integrated lower foot pads.
+- Added 4 x 4 mm rear-corner relief notches to the camera base plate to clear the front-arm envelopes.
+- Added a solid-level pairwise intersection regression test. The first CI attempt exposed a test-harness issue (the CAD kernel returns `None` for disjoint solids); the test now treats that as a valid no-intersection result. The corrected run is pending.
+
+**Manufacturability caveat:** the current camera side-plate solids combine the vertical plate, horizontal foot pad and vertical web into one fused solid. This is not yet a validated flat 2D carbon cut profile. Before DXF release, split the camera side plates from their support brackets or redesign them as genuinely planar parts.
+
 ## Next engineering actions
 
 1. Correct the camera foot/camera-envelope interference without compromising the camera angle or fastener edge distances.
