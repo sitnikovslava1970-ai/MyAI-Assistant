@@ -48,7 +48,16 @@ A fresh STEP package generated after the two geometry corrections was imported a
 - CI result: 19 tests passed; STEP/STL and preliminary DXF export steps succeeded.
 - DXF profiles are generated for 7 flat parts (two center plates, four arms and camera base plate). The files use millimetres and OUTLINE, HOLES and NOTES layers; independent DXF audit found no errors or duplicate entities.
 
-**Camera side-plate caveat:** the current camera side-plate solids combine the vertical plate, horizontal foot pad and support web into one fused solid. This is not yet a validated flat 2D carbon cut profile. The side plates are therefore excluded from the preliminary DXF package pending a planar redesign with separate support brackets.
+## Camera support redesign — R06
+
+- Split the left and right camera side panels into independent 2 mm carbon parts.
+- Added two separate angled support brackets, one per side, with horizontal mounting feet and four total M3 attachment points to the camera base plate.
+- The side panels retain two adjustable 4.5 × 2.2 mm slots per side, with 16 mm nominal pitch.
+- Added the two flat side panels to the DXF package in their local panel plane (DXF X = local panel Y; DXF Y = local panel Z). The two 3D support brackets remain STEP/STL parts and are not DXF cut profiles.
+- The support bracket material is not selected: PA12-CF or 6061 aluminium remain alternatives pending strength, vibration and manufacturing review.
+- CI passed for the R06 geometry and DXF export. Separate STL meshes for all physical parts are watertight; the complete assembly STL is a multi-part compound and is not expected to be watertight as one shell.
+
+**Remaining camera verification:** confirm the physical O4 Pro camera screw pattern against the slots, check fastener tool access and cable bend radius, and validate the bracket stiffness and foot edge distances before CNC or flight use.
 
 ## Earlier correction notes
 
