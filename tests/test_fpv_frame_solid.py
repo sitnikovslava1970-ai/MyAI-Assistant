@@ -45,3 +45,17 @@ def test_invalid_root_bolt_row_spacing_is_rejected():
     solid = FPVFrameSolidSpec(arm_root_hole_transverse_spacing_mm=16.0)
     with pytest.raises(ValueError):
         solid.validate(frame)
+
+
+
+def test_root_bolt_holes_keep_full_diameter_inside_lower_plate():
+    frame = FPVFrameSpec(arm_width_mm=18.0)
+    solid = FPVFrameSolidSpec()
+    holes = arm_root_bolt_centers(frame, solid)
+    half_x = frame.top_plate_length_mm / 2
+    half_y = frame.plate_width_mm / 2
+    radius = solid.arm_root_hole_diameter_mm / 2
+    for points in holes.values():
+        for x, y in points:
+            assert abs(x) + radius <= half_x
+            assert abs(y) + radius <= half_y
