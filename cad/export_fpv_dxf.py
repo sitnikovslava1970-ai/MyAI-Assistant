@@ -178,9 +178,9 @@ def export_dxf_package(output_dir: Path) -> dict:
         "# FPV 7-inch Classic-X — preliminary DXF profiles\n\n"
         "All files use millimetres. Layers: OUTLINE, HOLES, NOTES. "
         "The nine exported parts are the two center plates, four arms, camera base plate and two camera side panels.\n\n"
-        "**Not a CNC release.** Cutter compensation is not applied. The camera side plates "
-        "are excluded because their current 3D solids are not flat cut profiles. The 160 x 75 mm "
-        "plate orientation is still a model assumption and must be confirmed.\n",
+        "**Not a CNC release.** Cutter compensation is not applied. Camera side panels are exported "
+        "in their local flat plane (DXF X=panel-local Y, DXF Y=panel-local Z); angled 3D support "
+        "brackets are excluded. The 160 x 75 mm plate orientation remains a model assumption.\\n",
         encoding="utf-8",
     )
     return manifest
