@@ -363,7 +363,7 @@ def build_fpv_frame_parts(
                 )
                 side_plate = side_plate - slot_end
         foot_pad = Pos(x, solid.camera_side_foot_y_mm, frame.plate_thickness_mm + 2.0) * Box(
-            3.0, 20.0, 2.0,
+            6.0, 20.0, 2.0,
             align=(Align.CENTER, Align.CENTER, Align.MIN),
         )
         web = Pos(x, solid.camera_side_foot_y_mm, frame.plate_thickness_mm + 4.0) * Box(
