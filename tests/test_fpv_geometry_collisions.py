@@ -9,6 +9,8 @@ def test_assembly_components_have_no_unintended_volume_intersections():
     collisions = []
     for name_a, name_b in combinations(parts, 2):
         overlap = parts[name_a].intersect(parts[name_b])
+        if overlap is None:
+            continue
         volume = overlap.volume
         if volume > 1e-5:
             collisions.append((name_a, name_b, volume))
