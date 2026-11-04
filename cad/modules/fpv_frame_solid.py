@@ -42,7 +42,7 @@ class FPVFrameSolidSpec:
     camera_mount_slot_width_mm: float = 2.2
     camera_mount_slot_length_mm: float = 4.5
     camera_center_y_mm: float = 55.0
-    camera_center_z_mm: float = 19.1
+    camera_center_z_mm: float = 21.6
     camera_base_width_mm: float = 36.0
     camera_base_length_mm: float = 50.0
     camera_base_center_y_mm: float = 55.5
@@ -333,6 +333,17 @@ def build_fpv_frame_parts(
         base_plate, camera_foot_holes, solid.camera_base_hole_diameter_mm,
         frame.plate_thickness_mm - 1.0, frame.plate_thickness_mm + 2.0,
     )
+    # Relieve both rear corners so the base plate clears the front-arm envelopes.
+    # The 4 x 4 mm notches leave the camera-base M3 holes untouched.
+    for corner_x in (-solid.camera_base_width_mm / 2, solid.camera_base_width_mm / 2):
+        corner_relief = Pos(
+            corner_x, solid.camera_base_center_y_mm - solid.camera_base_length_mm / 2,
+            frame.plate_thickness_mm - 1.0,
+        ) * Box(
+            4.0, 4.0, frame.plate_thickness_mm + 2.0,
+            align=(Align.CENTER, Align.CENTER, Align.MIN),
+        )
+        base_plate = base_plate - corner_relief
     parts["CAMERA_BASE_PLATE"] = base_plate
 
     for side_name, x in (("LEFT", -side_x), ("RIGHT", side_x)):
