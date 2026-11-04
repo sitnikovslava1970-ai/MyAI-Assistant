@@ -42,7 +42,7 @@ class FPVFrameSolidSpec:
     camera_mount_slot_width_mm: float = 2.2
     camera_mount_slot_length_mm: float = 4.5
     camera_center_y_mm: float = 55.0
-    camera_center_z_mm: float = 17.1
+    camera_center_z_mm: float = 19.1
     camera_base_width_mm: float = 36.0
     camera_base_length_mm: float = 50.0
     camera_base_center_y_mm: float = 55.5
@@ -362,11 +362,11 @@ def build_fpv_frame_parts(
                     )
                 )
                 side_plate = side_plate - slot_end
-        foot_pad = Pos(x, solid.camera_side_foot_y_mm, frame.plate_thickness_mm) * Box(
-            6.0, 20.0, 2.0,
+        foot_pad = Pos(x, solid.camera_side_foot_y_mm, frame.plate_thickness_mm + 2.0) * Box(
+            3.0, 20.0, 2.0,
             align=(Align.CENTER, Align.CENTER, Align.MIN),
         )
-        web = Pos(x, solid.camera_side_foot_y_mm, frame.plate_thickness_mm + 2.0) * Box(
+        web = Pos(x, solid.camera_side_foot_y_mm, frame.plate_thickness_mm + 4.0) * Box(
             solid.camera_side_plate_thickness_mm, 20.0, 3.2,
             align=(Align.CENTER, Align.CENTER, Align.MIN),
         )
