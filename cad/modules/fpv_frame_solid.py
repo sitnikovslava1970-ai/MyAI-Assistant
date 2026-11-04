@@ -6,7 +6,7 @@ verify fastener access, laminate edge distances, camera/battery clearances and
 structural performance before CNC manufacture or flight.
 """
 from dataclasses import dataclass
-from math import atan2, hypot, sqrt
+from math import atan2, cos, hypot, sin, sqrt
 from pathlib import Path
 from typing import Any
 
@@ -48,8 +48,14 @@ class FPVFrameSolidSpec:
     camera_base_center_y_mm: float = 55.5
     camera_base_mount_spacing_x_mm: float = 24.0
     camera_base_mount_y_mm: float = 33.5
-    camera_side_foot_spacing_x_mm: float = 29.0
-    camera_side_foot_y_mm: float = 55.0
+    camera_side_foot_spacing_x_mm: float = 27.0
+    camera_side_foot_y_mm: float = 64.0065
+    camera_side_foot_hole_pitch_y_mm: float = 10.0
+    camera_support_foot_width_mm: float = 9.0
+    camera_support_foot_length_mm: float = 18.0
+    camera_support_foot_thickness_mm: float = 2.0
+    camera_support_web_width_mm: float = 8.0
+    camera_support_web_depth_mm: float = 4.0
     camera_base_hole_diameter_mm: float = 3.2
 
     def validate(self, frame: FPVFrameSpec) -> None:
@@ -172,9 +178,16 @@ def camera_base_mount_centers(solid: FPVFrameSolidSpec | None = None) -> list[tu
 
 
 def camera_side_foot_centers(solid: FPVFrameSolidSpec | None = None) -> list[tuple[float, float]]:
+    """Four M3 holes, two per separate camera support foot."""
     solid = solid or FPVFrameSolidSpec()
-    half = solid.camera_side_foot_spacing_x_mm / 2
-    return [(-half, solid.camera_side_foot_y_mm), (half, solid.camera_side_foot_y_mm)]
+    half_x = solid.camera_side_foot_spacing_x_mm / 2
+    half_y = solid.camera_side_foot_hole_pitch_y_mm / 2
+    return [
+        (x, y)
+        for x in (-half_x, half_x)
+        for y in (solid.camera_side_foot_y_mm - half_y,
+                  solid.camera_side_foot_y_mm + half_y)
+    ]
 
 def build_fpv_frame_parts(
     frame: FPVFrameSpec | None = None,
@@ -236,10 +249,7 @@ def build_fpv_frame_parts(
         (-solid.camera_base_mount_spacing_x_mm/2, solid.camera_base_mount_y_mm),
         (solid.camera_base_mount_spacing_x_mm/2, solid.camera_base_mount_y_mm),
     ]
-    camera_foot_holes = [
-        (-solid.camera_side_foot_spacing_x_mm/2, solid.camera_side_foot_y_mm),
-        (solid.camera_side_foot_spacing_x_mm/2, solid.camera_side_foot_y_mm),
-    ]
+    camera_foot_holes = camera_side_foot_centers(solid)
 
     plate_outline = (frame.top_plate_length_mm, frame.plate_width_mm)
     lower = Box(*plate_outline, frame.plate_thickness_mm,
@@ -346,8 +356,26 @@ def build_fpv_frame_parts(
         base_plate = base_plate - corner_relief
     parts["CAMERA_BASE_PLATE"] = base_plate
 
-    for side_name, x in (("LEFT", -side_x), ("RIGHT", side_x)):
-        local = Pos(x, camera_y, camera_z) * Rot(camera_angle, 0, 0)
+    # Separate flat carbon camera side plates. Their support feet are separate
+    # non-carbon brackets so the side plates remain valid 2D cut parts.
+    support_x = solid.camera_side_foot_spacing_x_mm / 2
+    local_bottom_z = -solid.camera_module_height_mm / 2
+    support_top_z = local_bottom_z
+    support_bottom_z = (
+        frame.plate_thickness_mm * 2 + solid.camera_support_foot_thickness_mm - camera_z
+    ) / cos(camera_angle * 3.141592653589793 / 180.0)
+    support_web_height = support_bottom_z - support_top_z
+    if support_web_height <= 0:
+        raise ValueError("Camera support web has invalid height")
+    support_web_center_z = (support_bottom_z + support_top_z) / 2
+    support_foot_center_y = camera_y - support_bottom_z * sin(
+        camera_angle * 3.141592653589793 / 180.0
+    )
+
+    for side_name, sign in (("LEFT", -1), ("RIGHT", 1)):
+        panel_x = sign * side_x
+        support_center_x = sign * support_x
+        local = Pos(panel_x, camera_y, camera_z) * Rot(camera_angle, 0, 0)
         side_plate = local * Box(
             solid.camera_side_plate_thickness_mm,
             solid.camera_module_depth_mm,
@@ -373,20 +401,41 @@ def build_fpv_frame_parts(
                     )
                 )
                 side_plate = side_plate - slot_end
-        foot_pad = Pos(x, solid.camera_side_foot_y_mm, frame.plate_thickness_mm + 2.0) * Box(
-            6.0, 20.0, 2.0,
-            align=(Align.CENTER, Align.CENTER, Align.MIN),
-        )
-        web = Pos(x, solid.camera_side_foot_y_mm, frame.plate_thickness_mm + 4.0) * Box(
-            solid.camera_side_plate_thickness_mm, 20.0, 3.2,
-            align=(Align.CENTER, Align.CENTER, Align.MIN),
-        )
-        side_plate = side_plate + foot_pad + web
-        side_plate = drill(
-            side_plate, [(x, solid.camera_side_foot_y_mm)],
-            solid.camera_base_hole_diameter_mm, frame.plate_thickness_mm - 1.0, 7.0,
-        )
         parts[f"CAMERA_SIDE_{side_name}"] = side_plate
+
+        # Separate PA12-CF/aluminium support: horizontal foot on the camera
+        # base plate and an angled web terminating at the side-plate lower edge.
+        foot = Pos(
+            support_center_x, support_foot_center_y,
+            frame.plate_thickness_mm * 2 + solid.camera_support_foot_thickness_mm / 2,
+        ) * Box(
+            solid.camera_support_foot_width_mm,
+            solid.camera_support_foot_length_mm,
+            solid.camera_support_foot_thickness_mm,
+            align=(Align.CENTER, Align.CENTER, Align.CENTER),
+        )
+        web = (
+            Pos(support_center_x, camera_y, camera_z)
+            * Rot(camera_angle, 0, 0)
+            * Pos(0, 0, support_web_center_z)
+            * Box(
+                solid.camera_support_web_width_mm,
+                solid.camera_support_web_depth_mm,
+                support_web_height,
+                align=(Align.CENTER, Align.CENTER, Align.CENTER),
+            )
+        )
+        support = foot + web
+        side_holes = [
+            (support_center_x, support_foot_center_y - solid.camera_side_foot_hole_pitch_y_mm / 2),
+            (support_center_x, support_foot_center_y + solid.camera_side_foot_hole_pitch_y_mm / 2),
+        ]
+        support = drill(
+            support, side_holes, solid.camera_base_hole_diameter_mm,
+            frame.plate_thickness_mm * 2 - 1.0,
+            solid.camera_support_foot_thickness_mm + 2.0,
+        )
+        parts[f"CAMERA_SUPPORT_{side_name}"] = support
 
     # REF_ components are visual envelopes only, not manufactured parts.
     parts["REF_CAMERA_O4_PRO"] = (
