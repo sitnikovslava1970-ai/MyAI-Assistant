@@ -15,7 +15,7 @@ from pathlib import Path
 
 import ezdxf
 from build123d import Axis
-from build123d.exporters import ExportDXF
+from build123d.exporters import ColorIndex, ExportDXF
 
 from cad.modules.fpv_frame import FPVFrameSpec
 from cad.modules.fpv_frame_solid import FPVFrameSolidSpec, build_fpv_frame_parts
@@ -52,9 +52,9 @@ def export_dxf_package(output_dir: Path) -> dict:
             raise RuntimeError(f"Open internal profile in {part_id}")
 
         exporter = ExportDXF()
-        exporter.add_layer("OUTLINE", color="black", line_weight=0.25)
-        exporter.add_layer("HOLES", color="blue", line_weight=0.18)
-        exporter.add_layer("NOTES", color="gray", line_weight=0.13)
+        exporter.add_layer("OUTLINE", color=ColorIndex.BLACK, line_weight=0.25)
+        exporter.add_layer("HOLES", color=ColorIndex.BLUE, line_weight=0.18)
+        exporter.add_layer("NOTES", color=ColorIndex.GRAY, line_weight=0.13)
         with warnings.catch_warnings():
             warnings.filterwarnings("ignore", message="Exporting non-planar shape to 2D format")
             exporter.add_shape(outer, layer="OUTLINE")
