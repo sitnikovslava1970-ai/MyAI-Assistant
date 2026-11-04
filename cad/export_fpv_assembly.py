@@ -65,10 +65,12 @@ def build_package(output_dir: Path) -> dict:
         AssemblyItem("CAMERA_BASE_PLATE", "DJI O4 Pro camera base plate", 1, "2 mm carbon fiber provisional", frame.plate_thickness_mm),
         AssemblyItem("CAMERA_SIDE_LEFT", "DJI O4 Pro left adjustable side plate", 1, "2 mm carbon fiber provisional", solid.camera_side_plate_thickness_mm),
         AssemblyItem("CAMERA_SIDE_RIGHT", "DJI O4 Pro right adjustable side plate", 1, "2 mm carbon fiber provisional", solid.camera_side_plate_thickness_mm),
+        AssemblyItem("CAMERA_SUPPORT_LEFT", "Left angled camera support bracket", 1, "PA12-CF or 6061 aluminium; material to validate"),
+        AssemblyItem("CAMERA_SUPPORT_RIGHT", "Right angled camera support bracket", 1, "PA12-CF or 6061 aluminium; material to validate"),
         AssemblyItem("ARM_ROOT_M3", "Arm-root M3 fastener", 16, "steel; length to confirm"),
         AssemblyItem("MOTOR_M3", "Motor M3 fastener", 16, "steel; length to confirm"),
         AssemblyItem("CAMERA_BASE_M3", "Camera base M3 fastener", 2, "steel; length to confirm"),
-        AssemblyItem("CAMERA_SIDE_M3", "Camera side-plate M3 fastener", 2, "steel; length to confirm"),
+        AssemblyItem("CAMERA_SUPPORT_M3", "Camera support-to-base M3 fastener", 4, "steel; length to confirm"),
         AssemblyItem("CAMERA_M2", "DJI O4 Pro camera M2 fastener", 4, "steel; length to confirm"),
         AssemblyItem("AIR_UNIT_M2", "DJI O4 Pro air-unit M2 fastener", 4, "steel; length to confirm"),
         AssemblyItem("BATTERY_STRAP", "Battery strap", 2, "webbing; length to confirm"),
@@ -101,7 +103,20 @@ def build_package(output_dir: Path) -> dict:
             "camera_envelope_mm": [solid.camera_module_width_mm, solid.camera_module_depth_mm, solid.camera_module_height_mm],
             "side_plate_thickness_mm": solid.camera_side_plate_thickness_mm,
             "adjustment_slot_length_mm": solid.camera_mount_slot_length_mm,
-            "note": "Slot geometry is a preliminary adjustable concept; verify actual camera screw positions and fit against the physical unit."
+            "side_panels_are_separate_flat_parts": True,
+            "support_brackets": ["CAMERA_SUPPORT_LEFT", "CAMERA_SUPPORT_RIGHT"],
+            "support_foot_mount_holes": camera_foot_holes if False else [],
+            "note": "Side panels are separate 2 mm carbon parts; angled support brackets are separate 3D parts. Verify actual camera screw positions and physical fit."
+        },
+        "camera_support_mount": {
+            "support_foot_hole_centers_mm": [
+                [x, y] for x, y in __import__("cad.modules.fpv_frame_solid", fromlist=["camera_side_foot_centers"]).camera_side_foot_centers(solid)
+            ],
+            "fastener_count": 4,
+            "foot_thickness_mm": solid.camera_support_foot_thickness_mm,
+            "foot_width_mm": solid.camera_support_foot_width_mm,
+            "foot_length_mm": solid.camera_support_foot_length_mm,
+            "material": "PA12-CF or 6061 aluminium; requires strength and fit validation",
         },
         "battery_strap_slots": {
             "count": 2,
@@ -112,6 +127,8 @@ def build_package(output_dir: Path) -> dict:
         "generated_files": [
             "FPV_7in_ClassicX_Assembly.step",
             "FPV_7in_ClassicX_Assembly.stl",
+            "dxf/FPV_7in_ClassicX_CAMERA_SIDE_LEFT.dxf",
+            "dxf/FPV_7in_ClassicX_CAMERA_SIDE_RIGHT.dxf",
         ],
         "not_yet_modeled_or_verified": [
             "Physical fit and exact screw positions of the DJI O4 Pro camera against the side-plate slots",
@@ -119,6 +136,7 @@ def build_package(output_dir: Path) -> dict:
             "FC/ESC stack hardware, stack height and exact stack orientation",
             "Air-unit antenna mounts and DJI-recommended 50 mm separation from carbon and other components",
             "M2/M3 fastener lengths, washers, nuts, thread engagement and tool access",
+            "Camera support bracket material, local strength and attachment stiffness",
             "Carbon laminate edge distances, countersinks and CNC cutter compensation",
             "Arm-root, camera-bracket and motor-mount structural strength",
             "Cooling airflow for the DJI O4 Pro transmission module",
