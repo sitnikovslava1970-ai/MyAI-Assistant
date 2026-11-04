@@ -36,6 +36,10 @@ The side-plate intersections occur where the integrated lower foot pads enter th
 
 These are geometric measurements only. They do not establish laminate strength or suitability for flight loads.
 
+## Recheck of corrected STEP package R03
+
+A fresh STEP package generated after the two geometry corrections was imported and checked again. **15 solids were inspected; 0 unintended volume intersections were found.** The former four intersection pairs are now clear in the exported STEP. This verifies the current solid geometry only; it does not verify fastener access, carbon strength or physical fit.
+
 ## Corrective changes submitted for validation
 
 - Raised the nominal camera center by 2.5 mm to separate the camera envelope from the integrated lower foot pads.
