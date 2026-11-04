@@ -10,7 +10,7 @@ def test_preliminary_dxf_package_exports_flat_carbon_parts(tmp_path):
     readme = (tmp_path / "README_DXF_PRELIMINARY.md").read_text(encoding="utf-8")
     assert "nine exported parts" in readme
     assert "Camera side panels are exported" in readme
-    assert not readme.endswith("\\\\n")
+    assert not readme.endswith("\\n")
 
     for item in manifest["generated_parts"]:
         path = tmp_path / item["file"]
