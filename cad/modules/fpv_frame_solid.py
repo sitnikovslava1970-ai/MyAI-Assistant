@@ -27,7 +27,7 @@ class FPVFrameSolidSpec:
     standoff_y_offset_mm: float = 65.0
     standoff_outer_diameter_mm: float = 6.0
     standoff_hole_diameter_mm: float = 3.2
-    battery_strap_slot_center_y_mm: float = 45.0
+    battery_strap_slot_center_x_mm: float = 25.0
     battery_strap_slot_length_mm: float = 24.0
     battery_strap_slot_width_mm: float = 4.0
     air_unit_mount_spacing_mm: float = 25.5
@@ -79,10 +79,10 @@ class FPVFrameSolidSpec:
             raise ValueError("Standoff Y position is outside the center plate")
         if self.battery_strap_slot_length_mm <= self.battery_strap_slot_width_mm:
             raise ValueError("Battery strap slot length must exceed its width")
-        if self.battery_strap_slot_length_mm / 2 >= frame.plate_width_mm / 2:
-            raise ValueError("Battery strap slot length is outside the transverse plate dimension")
-        if abs(self.battery_strap_slot_center_y_mm) + self.battery_strap_slot_width_mm / 2 >= frame.top_plate_length_mm / 2:
-            raise ValueError("Battery strap slot is outside the longitudinal plate dimension")
+        if abs(self.battery_strap_slot_center_x_mm) + self.battery_strap_slot_width_mm / 2 >= frame.plate_width_mm / 2:
+            raise ValueError("Battery strap slot is outside the transverse plate dimension")
+        if self.battery_strap_slot_length_mm / 2 >= frame.top_plate_length_mm / 2:
+            raise ValueError("Battery strap slot length is outside the longitudinal plate dimension")
         if self.air_unit_mount_spacing_mm + self.air_unit_hole_diameter_mm >= min(frame.top_plate_length_mm, frame.plate_width_mm):
             raise ValueError("DJI O4 mounting pattern does not fit the center plate")
         if abs(self.air_unit_center_y_mm) + self.air_unit_mount_spacing_mm / 2 + self.air_unit_hole_diameter_mm / 2 > frame.top_plate_length_mm / 2:
@@ -162,8 +162,8 @@ def standoff_centers(solid: FPVFrameSolidSpec | None = None) -> list[tuple[float
 
 def battery_strap_slot_centers(solid: FPVFrameSolidSpec | None = None) -> list[tuple[float, float]]:
     solid = solid or FPVFrameSolidSpec()
-    return [(0.0, -solid.battery_strap_slot_center_y_mm),
-            (0.0, solid.battery_strap_slot_center_y_mm)]
+    return [(-solid.battery_strap_slot_center_x_mm, 0.0),
+            (solid.battery_strap_slot_center_x_mm, 0.0)]
 
 
 def air_unit_mount_centers(solid: FPVFrameSolidSpec | None = None) -> list[tuple[float, float]]:
@@ -220,11 +220,11 @@ def build_fpv_frame_parts(
         straight = length - width
         for x, y in centers:
             shape = shape - (Pos(x, y, z0) * Box(
-                straight, width, depth,
+                width, straight, depth,
                 align=(Align.CENTER, Align.CENTER, Align.MIN),
             ))
-            for end_x in (x - straight / 2, x + straight / 2):
-                shape = shape - (Pos(end_x, y, z0) * Cylinder(
+            for end_y in (y - straight / 2, y + straight / 2):
+                shape = shape - (Pos(x, end_y, z0) * Cylinder(
                     radius, depth,
                     align=(Align.CENTER, Align.CENTER, Align.MIN),
                 ))
