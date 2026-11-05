@@ -2,6 +2,7 @@
 from pathlib import Path
 from .dxf_export import export_outline_dxf
 from .fpv_frame import FPVFrameSpec
+from .fpv_frame_solid import top_plate_outline_points
 from .propeller import PropellerSpec, rotate_points
 from math import pi, hypot
 
@@ -13,7 +14,7 @@ def export_fpv_layout_dxf(path: str | Path, spec: FPVFrameSpec | None = None) ->
     # Reference envelopes for the central plates. Arm solids and laminate contours
     # require the final selected geometry and fastener clearances.
     half_x, half_y = spec.plate_width_mm / 2, spec.top_plate_length_mm / 2
-    outlines["TOP_PLATE"] = [(-half_x, -half_y), (half_x, -half_y), (half_x, half_y), (-half_x, half_y)]
+    outlines["TOP_PLATE"] = top_plate_outline_points(spec)
     outlines["BOTTOM_PLATE"] = [(-half_x, -half_y), (half_x, -half_y), (half_x, half_y), (-half_x, half_y)]
     # Four arm envelopes connect the central plate boundary to each motor center.
     for motor_name, (mx, my) in spec.motor_centers().items():
