@@ -56,8 +56,8 @@ def test_root_bolt_holes_keep_full_diameter_inside_lower_plate():
     frame = FPVFrameSpec(arm_width_mm=18.0)
     solid = FPVFrameSolidSpec()
     holes = arm_root_bolt_centers(frame, solid)
-    half_x = frame.top_plate_length_mm / 2
-    half_y = frame.plate_width_mm / 2
+    half_x = frame.plate_width_mm / 2
+    half_y = frame.top_plate_length_mm / 2
     radius = solid.arm_root_hole_diameter_mm / 2
     for points in holes.values():
         for x, y in points:
@@ -72,16 +72,16 @@ def test_accessory_mount_patterns_fit_their_plate_envelopes():
     solid.validate(frame)
 
     for x, y in battery_strap_slot_centers(solid):
-        assert abs(x) + solid.battery_strap_slot_width_mm / 2 < frame.top_plate_length_mm / 2
-        assert abs(y) + solid.battery_strap_slot_length_mm / 2 < frame.plate_width_mm / 2
+        assert abs(x) + solid.battery_strap_slot_length_mm / 2 < frame.plate_width_mm / 2
+        assert abs(y) + solid.battery_strap_slot_width_mm / 2 < frame.top_plate_length_mm / 2
 
     for x, y in air_unit_mount_centers(solid):
-        assert abs(x) + solid.air_unit_hole_diameter_mm / 2 < frame.top_plate_length_mm / 2
-        assert abs(y) + solid.air_unit_hole_diameter_mm / 2 < frame.plate_width_mm / 2
+        assert abs(x) + solid.air_unit_hole_diameter_mm / 2 < frame.plate_width_mm / 2
+        assert abs(y) + solid.air_unit_hole_diameter_mm / 2 < frame.top_plate_length_mm / 2
 
     for x, y in camera_base_mount_centers(solid):
-        assert abs(x) + solid.camera_base_hole_diameter_mm / 2 < frame.top_plate_length_mm / 2
-        assert abs(y) + solid.camera_base_hole_diameter_mm / 2 < frame.plate_width_mm / 2
+        assert abs(x) + solid.camera_base_hole_diameter_mm / 2 < frame.plate_width_mm / 2
+        assert abs(y) + solid.camera_base_hole_diameter_mm / 2 < frame.top_plate_length_mm / 2
 
 
 def test_camera_bracket_side_spacing_clears_o4_pro_camera_envelope():
@@ -158,3 +158,14 @@ def test_camera_support_foot_mount_pattern_has_four_m3_holes_inside_base_plate()
         assert abs(x) + solid.camera_base_hole_diameter_mm / 2 < solid.camera_base_width_mm / 2
         assert solid.camera_base_center_y_mm - solid.camera_base_length_mm / 2 + solid.camera_base_hole_diameter_mm / 2 < y
         assert y < solid.camera_base_center_y_mm + solid.camera_base_length_mm / 2 - solid.camera_base_hole_diameter_mm / 2
+
+
+def test_center_plate_orientation_is_160mm_longitudinal_and_75mm_transverse():
+    frame = FPVFrameSpec()
+    solid = FPVFrameSolidSpec()
+    solid.validate(frame)
+    assert frame.top_plate_length_mm == 160.0
+    assert frame.plate_width_mm == 75.0
+    assert solid.standoff_x_offset_mm == 27.5
+    assert solid.standoff_y_offset_mm == 65.0
+    assert battery_strap_slot_centers(solid) == [(0.0, -45.0), (0.0, 45.0)]
