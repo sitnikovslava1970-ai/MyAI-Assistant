@@ -131,3 +131,21 @@ The camera-base mounting holes in the lower plate have the smallest nominal rema
 6. Then produce DXF outlines, hole layers, dimensioned drawings, BOM and CNC checklist.
 
 **Release gate:** do not call the design CNC-ready or flight-ready until the coordinate convention, physical component fit, fastener edge distances, laminate details, strength, vibration and thermal/antenna requirements are verified.
+
+
+## R07 — approved center-plate orientation
+
+The user approved 160 mm along the flight direction (+Y) and 75 mm transverse (X). This supersedes the earlier R02 note describing the opposite orientation.
+
+- Plate envelope: X = -37.5 to +37.5 mm; Y = -80 to +80 mm.
+- Standoffs: X = +/-27.5 mm, Y = +/-65 mm.
+- Battery strap slots: centers at (0, -45) and (0, +45) mm; 24 x 4 mm, long axis along X.
+- DJI O4 transmission-module pattern remains 25.5 mm square, centered at Y = -20 mm.
+- Camera-base mounting pair remains at X = +/-12 mm, Y = +33.5 mm.
+- Motor centers remain at (+/-111.37, +/-111.37) mm for the 315 mm diagonal wheelbase.
+
+The arm centerlines intersect the new plate boundary at X/Y = +/-37.5 mm because the 75 mm transverse edges are reached first. Root-bolt locations are constrained against the new X/Y bounds. The 20 x 20 and 30.5 x 30.5 mm stack patterns remain centered at the origin.
+
+The former standoff coordinates (X = +/-65, Y = +/-27.5) would fall outside the new transverse width and have been replaced. Battery slots have been moved to Y = +/-45 and rotated so their 24 mm length lies along X.
+
+R07 requires fresh unit tests, STEP/STL export, DXF audit, pairwise solid-intersection checks and fastener-hole edge-distance screening. R06 clearance and edge-distance values are historical and must not be treated as R07 measurements. Physical component fit, fastener head/washer access, laminate strength, antenna routing, cooling, vibration and flight validation remain open. Prototype geometry only.
