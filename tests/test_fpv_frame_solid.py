@@ -74,8 +74,8 @@ def test_accessory_mount_patterns_fit_their_plate_envelopes():
     solid.validate(frame)
 
     for x, y in battery_strap_slot_centers(solid):
-        assert abs(x) + solid.battery_strap_slot_width_mm / 2 < frame.plate_width_mm / 2
-        assert abs(y) + solid.battery_strap_slot_length_mm / 2 < frame.top_plate_length_mm / 2
+        assert abs(x) + solid.battery_strap_slot_length_mm / 2 < frame.plate_width_mm / 2
+        assert abs(y) + solid.battery_strap_slot_width_mm / 2 < frame.top_plate_length_mm / 2
 
     for x, y in air_unit_mount_centers(solid):
         assert abs(x) + solid.air_unit_hole_diameter_mm / 2 < frame.plate_width_mm / 2
@@ -197,3 +197,17 @@ def test_camera_base_m3_holes_have_safe_nominal_plate_edge_distance():
     ]
     assert min(edge_distances) == pytest.approx(5.5)
     assert min(edge_distances) - solid.camera_base_hole_diameter_mm / 2 == pytest.approx(3.9)
+
+
+def test_two_battery_straps_have_four_slots_clear_of_stack_and_standoff_holes():
+    solid = FPVFrameSolidSpec()
+    slots = battery_strap_slot_centers(solid)
+    assert len(slots) == 4
+    stack_holes = [(x, y) for spacing in (20.0, 30.5)
+                   for x in (-spacing / 2, spacing / 2)
+                   for y in (-spacing / 2, spacing / 2)]
+    for x, y in slots:
+        for sx, sy in stack_holes:
+            dx = max(abs(x - sx) - solid.battery_strap_slot_length_mm / 2, 0.0)
+            dy = max(abs(y - sy) - solid.battery_strap_slot_width_mm / 2, 0.0)
+            assert (dx * dx + dy * dy) ** 0.5 > solid.stack_hole_diameter_mm / 2
