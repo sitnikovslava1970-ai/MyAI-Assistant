@@ -47,7 +47,7 @@ class FPVFrameSolidSpec:
     camera_base_length_mm: float = 50.0
     camera_base_center_y_mm: float = 55.5
     camera_base_mount_spacing_x_mm: float = 24.0
-    camera_base_mount_y_mm: float = 33.5
+    camera_base_mount_y_mm: float = 36.0
     camera_side_foot_spacing_x_mm: float = 27.0
     camera_side_foot_y_mm: float = 64.0065
     camera_side_foot_hole_pitch_y_mm: float = 10.0
