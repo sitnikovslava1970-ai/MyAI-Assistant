@@ -136,7 +136,7 @@ def build_package(output_dir: Path) -> dict:
             "center_coordinates_mm": [[x, y] for x, y in battery_strap_slot_centers(solid)],
             "overall_length_mm": solid.battery_strap_slot_length_mm,
             "width_mm": solid.battery_strap_slot_width_mm,
-            "long_axis": "X transverse",
+            "long_axis": "Y longitudinal",
             "pair_center_y_mm": [-solid.battery_strap_slot_center_y_mm, solid.battery_strap_slot_center_y_mm],
             "pair_center_x_mm": [-solid.battery_strap_slot_center_x_mm, solid.battery_strap_slot_center_x_mm],
         },
