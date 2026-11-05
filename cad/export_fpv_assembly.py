@@ -132,7 +132,7 @@ def build_package(output_dir: Path) -> dict:
             "material": "PA12-CF or 6061 aluminium; requires strength and fit validation",
         },
         "battery_strap_slots": {
-            "count": 2,
+            "count": 4,
             "center_coordinates_mm": [[x, y] for x, y in battery_strap_slot_centers(solid)],
             "overall_length_mm": solid.battery_strap_slot_length_mm,
             "width_mm": solid.battery_strap_slot_width_mm,
@@ -143,6 +143,13 @@ def build_package(output_dir: Path) -> dict:
         "generated_files": [
             "FPV_7in_ClassicX_Assembly.step",
             "FPV_7in_ClassicX_Assembly.stl",
+                        "dxf/FPV_7in_ClassicX_PLATE_BOTTOM.dxf",
+            "dxf/FPV_7in_ClassicX_PLATE_TOP.dxf",
+            "dxf/FPV_7in_ClassicX_ARM_FRONT_LEFT.dxf",
+            "dxf/FPV_7in_ClassicX_ARM_FRONT_RIGHT.dxf",
+            "dxf/FPV_7in_ClassicX_ARM_REAR_LEFT.dxf",
+            "dxf/FPV_7in_ClassicX_ARM_REAR_RIGHT.dxf",
+            "dxf/FPV_7in_ClassicX_CAMERA_BASE_PLATE.dxf",
             "dxf/FPV_7in_ClassicX_CAMERA_SIDE_LEFT.dxf",
             "dxf/FPV_7in_ClassicX_CAMERA_SIDE_RIGHT.dxf",
         ],
