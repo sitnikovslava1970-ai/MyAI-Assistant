@@ -191,6 +191,53 @@ def camera_side_foot_centers(solid: FPVFrameSolidSpec | None = None) -> list[tup
                   solid.camera_side_foot_y_mm + half_y)
     ]
 
+def camera_top_plate_notch_dimensions(
+    frame: FPVFrameSpec, solid: FPVFrameSolidSpec | None = None
+) -> tuple[float, float]:
+    """Return notch half-width and rear Y start, with clearance around the O4 camera."""
+    solid = solid or FPVFrameSolidSpec()
+    angle = frame.camera_angle_deg * 3.141592653589793 / 180.0
+    camera_half_y = (
+        solid.camera_module_depth_mm * cos(angle) / 2
+        + solid.camera_module_height_mm * sin(angle) / 2
+    )
+    clearance = 2.0
+    notch_start_y = solid.camera_center_y_mm - camera_half_y - clearance
+    camera_and_panel_half_width = (
+        solid.camera_module_width_mm / 2
+        + solid.camera_side_clearance_mm
+        + solid.camera_side_plate_thickness_mm
+    )
+    support_half_width = (
+        solid.camera_side_foot_spacing_x_mm / 2
+        + solid.camera_support_web_width_mm / 2
+    )
+    notch_half_width = max(camera_and_panel_half_width, support_half_width) + 1.5
+    if notch_half_width >= frame.plate_width_mm / 2:
+        raise ValueError("Camera notch leaves no side rails in the upper plate")
+    if notch_half_width >= solid.standoff_x_offset_mm - solid.standoff_hole_diameter_mm / 2:
+        raise ValueError("Camera notch is too close to the front standoff holes")
+    return notch_half_width, notch_start_y
+
+
+def top_plate_outline_points(
+    frame: FPVFrameSpec | None = None,
+    solid: FPVFrameSolidSpec | None = None,
+) -> list[tuple[float, float]]:
+    """Upper-plate 2D profile with a front-open camera clearance notch."""
+    frame = frame or FPVFrameSpec()
+    solid = solid or FPVFrameSolidSpec()
+    half_x = frame.plate_width_mm / 2
+    half_y = frame.top_plate_length_mm / 2
+    notch_half_width, notch_start_y = camera_top_plate_notch_dimensions(frame, solid)
+    return [
+        (-half_x, -half_y), (half_x, -half_y), (half_x, half_y),
+        (notch_half_width, half_y), (notch_half_width, notch_start_y),
+        (-notch_half_width, notch_start_y), (-notch_half_width, half_y),
+        (-half_x, half_y),
+    ]
+
+
 def build_fpv_frame_parts(
     frame: FPVFrameSpec | None = None,
     solid: FPVFrameSolidSpec | None = None,
@@ -273,6 +320,15 @@ def build_fpv_frame_parts(
     upper = Pos(0, 0, upper_z) * Box(
         *plate_outline, frame.plate_thickness_mm,
         align=(Align.CENTER, Align.CENTER, Align.MIN),
+    )
+    notch_half_width, notch_start_y = camera_top_plate_notch_dimensions(frame, solid)
+    notch_end_y = frame.top_plate_length_mm / 2 + 1.0
+    notch_length = notch_end_y - notch_start_y
+    notch_center_y = (notch_end_y + notch_start_y) / 2
+    upper = upper - (
+        Pos(0, notch_center_y, upper_z - 1.0)
+        * Box(2 * notch_half_width, notch_length, frame.plate_thickness_mm + 2.0,
+              align=(Align.CENTER, Align.CENTER, Align.MIN))
     )
     upper = drill(upper, stack_centers, solid.stack_hole_diameter_mm,
                   upper_z - 1.0, frame.plate_thickness_mm + 2.0)
