@@ -19,6 +19,7 @@ from cad.modules.fpv_frame_solid import (
     FPVFrameSolidSpec,
     build_fpv_frame_parts,
     camera_side_foot_centers,
+    battery_strap_slot_centers,
 )
 
 
@@ -120,7 +121,7 @@ def build_package(output_dir: Path) -> dict:
         },
         "battery_strap_slots": {
             "count": 2,
-            "center_coordinates_mm": [[-solid.battery_strap_slot_center_x_mm, 0.0], [solid.battery_strap_slot_center_x_mm, 0.0]],
+            "center_coordinates_mm": [[x, y] for x, y in battery_strap_slot_centers(solid)],
             "overall_length_mm": solid.battery_strap_slot_length_mm,
             "width_mm": solid.battery_strap_slot_width_mm,
         },
