@@ -141,7 +141,7 @@ The user approved 160 mm along the flight direction (+Y) and 75 mm transverse (X
 - Standoffs: X = +/-27.5 mm, Y = +/-65 mm.
 - Battery strap slots: centers at X = +/-25 mm, Y = 0; 24 x 4 mm, long axis along Y.
 - DJI O4 transmission-module pattern remains 25.5 mm square, centered at Y = -20 mm.
-- Camera-base mounting pair remains at X = +/-12 mm, Y = +33.5 mm.
+- Camera-base mounting pair is at X = +/-12 mm, Y = +36.0 mm to improve the rear-edge margin on the camera base plate.
 - Motor centers remain at (+/-111.37, +/-111.37) mm for the 315 mm diagonal wheelbase.
 
 The arm centerlines intersect the new plate boundary at X/Y = +/-37.5 mm because the 75 mm transverse edges are reached first. Root-bolt locations are constrained against the new X/Y bounds. The 20 x 20 and 30.5 x 30.5 mm stack patterns remain centered at the origin.
