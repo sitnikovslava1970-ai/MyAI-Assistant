@@ -138,22 +138,22 @@ The camera-base mounting holes in the lower plate have the smallest nominal rema
 The user approved 160 mm along the flight direction (+Y) and 75 mm transverse (X). This supersedes the earlier R02 note describing the opposite orientation.
 
 - Plate envelope: X = -37.5 to +37.5 mm; Y = -80 to +80 mm.
-- Standoffs: X = +/-27.5 mm, Y = +/-65 mm.
-- Battery strap slots: centers at X = +/-25 mm, Y = 0; 24 x 4 mm, long axis along Y.
+- Standoffs: X = +/-27.5 mm, Y = +/-70 mm.
+- Battery strap slots: four 22 x 4 mm slots in two pairs at X = +/-25 mm, Y = +/-50 mm; long axis along Y.
 - DJI O4 transmission-module pattern remains 25.5 mm square, centered at Y = -20 mm.
 - Camera-base mounting pair is at X = +/-12 mm, Y = +36.0 mm to improve the rear-edge margin on the camera base plate.
 - Motor centers remain at (+/-111.37, +/-111.37) mm for the 315 mm diagonal wheelbase.
 
 The arm centerlines intersect the new plate boundary at X/Y = +/-37.5 mm because the 75 mm transverse edges are reached first. Root-bolt locations are constrained against the new X/Y bounds. The 20 x 20 and 30.5 x 30.5 mm stack patterns remain centered at the origin.
 
-The former standoff coordinates (X = +/-65, Y = +/-27.5) would fall outside the new transverse width and have been replaced. Battery slots are centered at X = +/-25, Y = 0, with their 24 mm length along Y. This keeps them out from under the camera base plate while preserving edge clearance.
+The former standoff coordinates (X = +/-65, Y = +/-27.5) would fall outside the new transverse width and have been replaced. Battery slots are four 22 x 4 mm rounded slots at X = +/-25, Y = +/-50, with their long axis along Y. This creates two strap pairs, clears the camera base plate and arm-root fasteners, and keeps usable edge margins.
 
 R07 requires fresh unit tests, STEP/STL export, DXF audit, pairwise solid-intersection checks and fastener-hole edge-distance screening. R06 clearance and edge-distance values are historical and must not be treated as R07 measurements. Physical component fit, fastener head/washer access, laminate strength, antenna routing, cooling, vibration and flight validation remain open. Prototype geometry only.
 
 
 ## R07 battery strap correction and DJI installation constraints
 
-R07 uses **four** 22 x 4 mm rounded slots in both center plates for two battery straps. Slot long axes are transverse (X); slot centers are X = +/-20 mm at Y = -25 and +25 mm. This replaces the earlier two-slot concept. The DXF/STEP export must be regenerated from this updated parameter set.
+R07 uses **four** 22 x 4 mm rounded slots in both center plates for two battery straps. Slot long axes are longitudinal (Y); slot centers are X = +/-25 mm at Y = -50 and +50 mm. Standoffs are at X = +/-27.5 mm, Y = +/-70 mm. This replaces the earlier two-slot concept. The DXF/STEP export must be regenerated from this updated parameter set.
 
 The DJI O4 Air Unit Series User Manual v1.0 (sections 1.2 and 2.2) confirms O4 Pro transmitter dimensions 33.5 x 33.5 x 13 mm, a 25.5 mm mounting pattern, camera dimensions 25.55 x 20 x 23.3 mm, and two 110 mm antennas. DJI requires each antenna to be at least 50 mm from the transmission module, camera module, metal structural parts and carbon-fiber structural parts; the two O4 Pro antennas are recommended at 90 degrees and should extend outside the frame and remain visible from front and rear. The current R07 CAD still has no antenna support/routing solids, so this is an open release gate, not a verified clearance. The manual also calls for ventilation and use of propeller downwash for cooling.
 
