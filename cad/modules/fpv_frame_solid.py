@@ -163,6 +163,7 @@ def standoff_centers(solid: FPVFrameSolidSpec | None = None) -> list[tuple[float
 
 
 def battery_strap_slot_centers(solid: FPVFrameSolidSpec | None = None) -> list[tuple[float, float]]:
+    """Four rounded slots for two straps; each slot is 22 mm long along X."""
     solid = solid or FPVFrameSolidSpec()
     return [
         (x, y)
