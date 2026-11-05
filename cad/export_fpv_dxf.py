@@ -146,10 +146,10 @@ def export_dxf_package(output_dir: Path) -> dict:
         "project": "FPV_7in_ClassicX_LongRange_R01",
         "package_status": "preliminary 2D profile export",
         "coordinate_convention": {
-            "plate_x_dimension_mm": frame.top_plate_length_mm,
-            "plate_y_dimension_mm": frame.plate_width_mm,
+            "plate_x_dimension_mm": frame.plate_width_mm,
+            "plate_y_dimension_mm": frame.top_plate_length_mm,
             "camera_front_direction": "+Y",
-            "note": "Current model places the 160 mm plate dimension across X and 75 mm along Y. Confirm before production release.",
+            "note": "Approved orientation: 75 mm transverse across X and 160 mm longitudinal along Y. The upper plate includes a front camera-clearance notch.",
         },
         "generated_parts": generated,
         "excluded_parts": [
@@ -167,7 +167,7 @@ def export_dxf_package(output_dir: Path) -> dict:
             "No laminate-specific edge-distance approval",
             "No countersink, chamfer or fastener-length approval",
             "Camera support brackets are separate 3D parts and are excluded from 2D DXF",
-            "Coordinate convention must be confirmed before production",
+            "Coordinate convention is 160 mm longitudinal on +Y and 75 mm transverse on X",
             "Profiles are not approved for CNC manufacture or flight",
         ],
     }
