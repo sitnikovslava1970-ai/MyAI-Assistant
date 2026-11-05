@@ -10,6 +10,8 @@ from cad.modules.fpv_frame_solid import (
     air_unit_mount_centers,
     camera_base_mount_centers,
     camera_side_foot_centers,
+    camera_top_plate_notch_dimensions,
+    top_plate_outline_points,
 )
 
 
@@ -169,3 +171,16 @@ def test_center_plate_orientation_is_160mm_longitudinal_and_75mm_transverse():
     assert solid.standoff_x_offset_mm == 27.5
     assert solid.standoff_y_offset_mm == 65.0
     assert battery_strap_slot_centers(solid) == [(-25.0, 0.0), (25.0, 0.0)]
+
+
+def test_upper_plate_front_notch_clears_camera_and_preserves_standoff_rails():
+    frame = FPVFrameSpec()
+    solid = FPVFrameSolidSpec()
+    half_width, start_y = camera_top_plate_notch_dimensions(frame, solid)
+    assert half_width == pytest.approx(19.0)
+    assert start_y < solid.camera_center_y_mm - solid.camera_module_depth_mm / 2
+    assert half_width < solid.standoff_x_offset_mm - solid.standoff_hole_diameter_mm / 2
+    outline = top_plate_outline_points(frame, solid)
+    assert len(outline) == 8
+    assert (-half_width, start_y) in outline
+    assert (half_width, start_y) in outline
