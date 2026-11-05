@@ -74,8 +74,8 @@ def test_accessory_mount_patterns_fit_their_plate_envelopes():
     solid.validate(frame)
 
     for x, y in battery_strap_slot_centers(solid):
-        assert abs(x) + solid.battery_strap_slot_length_mm / 2 < frame.plate_width_mm / 2
-        assert abs(y) + solid.battery_strap_slot_width_mm / 2 < frame.top_plate_length_mm / 2
+        assert abs(x) + solid.battery_strap_slot_width_mm / 2 < frame.plate_width_mm / 2
+        assert abs(y) + solid.battery_strap_slot_length_mm / 2 < frame.top_plate_length_mm / 2
 
     for x, y in air_unit_mount_centers(solid):
         assert abs(x) + solid.air_unit_hole_diameter_mm / 2 < frame.plate_width_mm / 2
@@ -169,10 +169,10 @@ def test_center_plate_orientation_is_160mm_longitudinal_and_75mm_transverse():
     assert frame.top_plate_length_mm == 160.0
     assert frame.plate_width_mm == 75.0
     assert solid.standoff_x_offset_mm == 27.5
-    assert solid.standoff_y_offset_mm == 65.0
-    assert solid.battery_strap_slot_center_x_mm == 20.0
-    assert solid.battery_strap_slot_center_y_mm == 25.0
-    assert battery_strap_slot_centers(solid) == [(-20.0, -25.0), (20.0, -25.0), (-20.0, 25.0), (20.0, 25.0)]
+    assert solid.standoff_y_offset_mm == 70.0
+    assert solid.battery_strap_slot_center_x_mm == 25.0
+    assert solid.battery_strap_slot_center_y_mm == 50.0
+    assert battery_strap_slot_centers(solid) == [(-25.0, -50.0), (25.0, -50.0), (-25.0, 50.0), (25.0, 50.0)]
 
 
 def test_upper_plate_front_notch_clears_camera_and_preserves_standoff_rails():
@@ -210,6 +210,22 @@ def test_two_battery_straps_have_four_slots_clear_of_stack_and_standoff_holes():
                    for y in (-spacing / 2, spacing / 2)]
     for x, y in slots:
         for sx, sy in stack_holes:
-            dx = max(abs(x - sx) - solid.battery_strap_slot_length_mm / 2, 0.0)
-            dy = max(abs(y - sy) - solid.battery_strap_slot_width_mm / 2, 0.0)
-            assert (dx * dx + dy * dy) ** 0.5 > solid.stack_hole_diameter_mm / 2
+            dx = abs(x - sx)
+            dy = max(abs(y - sy) - (solid.battery_strap_slot_length_mm - solid.battery_strap_slot_width_mm) / 2, 0.0)
+            clearance = (dx * dx + dy * dy) ** 0.5 - solid.battery_strap_slot_width_mm / 2
+            assert clearance > solid.stack_hole_diameter_mm / 2
+
+
+def test_battery_strap_slots_clear_arm_root_and_standoff_m3_holes():
+    frame = FPVFrameSpec()
+    solid = FPVFrameSolidSpec()
+    roots = [p for group in arm_root_bolt_centers(frame, solid).values() for p in group]
+    stands = standoff_centers(solid)
+    segment_half = (solid.battery_strap_slot_length_mm - solid.battery_strap_slot_width_mm) / 2
+    slot_radius = solid.battery_strap_slot_width_mm / 2
+    for sx, sy in battery_strap_slot_centers(solid):
+        for hx, hy in roots + stands:
+            dx = abs(hx - sx)
+            dy = max(abs(hy - sy) - segment_half, 0.0)
+            edge_gap = (dx * dx + dy * dy) ** 0.5 - slot_radius - solid.arm_root_hole_diameter_mm / 2
+            assert edge_gap > 4.0
