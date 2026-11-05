@@ -184,3 +184,16 @@ def test_upper_plate_front_notch_clears_camera_and_preserves_standoff_rails():
     assert len(outline) == 8
     assert (-half_width, start_y) in outline
     assert (half_width, start_y) in outline
+
+
+def test_camera_base_m3_holes_have_safe_nominal_plate_edge_distance():
+    solid = FPVFrameSolidSpec()
+    y_min = solid.camera_base_center_y_mm - solid.camera_base_length_mm / 2
+    y_max = solid.camera_base_center_y_mm + solid.camera_base_length_mm / 2
+    edge_distances = [
+        min(abs(x) * 0 + (y - y_min), y_max - y,
+            solid.camera_base_width_mm / 2 - abs(x))
+        for x, y in camera_base_mount_centers(solid)
+    ]
+    assert min(edge_distances) == pytest.approx(5.5)
+    assert min(edge_distances) - solid.camera_base_hole_diameter_mm / 2 == pytest.approx(3.9)
