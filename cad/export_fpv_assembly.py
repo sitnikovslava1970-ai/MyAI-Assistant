@@ -81,7 +81,7 @@ def build_package(output_dir: Path) -> dict:
     manifest = {
         "project": "FPV_7in_ClassicX_LongRange_R01",
         "units": "mm",
-        "model_status": "first-pass geometric prototype",
+        "model_status": "R07 geometric prototype; physical fit and structural release checks remain open",
         "frame_parameters": frame.to_dict(),
         "solid_parameters": {
             key: value for key, value in solid.__dict__.items()
@@ -99,6 +99,18 @@ def build_package(output_dir: Path) -> dict:
             "module_envelope_mm": [33.5, 33.5, 13.0],
             "center_y_mm": solid.air_unit_center_y_mm,
             "note": "Reference envelope only; verify antenna routing, heat transfer and clearance to the rear arms."
+        },
+        "dji_o4_pro_reference_requirements": {
+            "transmission_module_envelope_mm": [33.5, 33.5, 13.0],
+            "transmission_module_mount_pattern_mm": 25.5,
+            "camera_module_envelope_mm": [25.55, 20.0, 23.3],
+            "antenna_count": 2,
+            "antenna_length_mm_each": 110.0,
+            "minimum_antenna_separation_mm": 50.0,
+            "antenna_orientation_recommendation_deg": 90,
+            "antenna_visibility": "extend outside frame and remain visible from front and rear",
+            "source": "DJI O4 Air Unit Series User Manual v1.0, sections 1.2 and 2.2",
+            "verification_status": "not yet modeled; antenna support and routing must be designed and checked"
         },
         "camera_mount": {
             "nominal_angle_deg": frame.camera_angle_deg,
@@ -135,7 +147,7 @@ def build_package(output_dir: Path) -> dict:
             "Physical fit and exact screw positions of the DJI O4 Pro camera against the side-plate slots",
             "Actual battery dimensions, strap path and battery-to-camera clearance",
             "FC/ESC stack hardware, stack height and exact stack orientation",
-            "Air-unit antenna mounts and DJI-recommended 50 mm separation from carbon and other components",
+            "Air-unit antenna mounts and routing to maintain DJI manual minimum 50 mm separation from the transmission module, camera module, metal and carbon-fiber structural parts",
             "M2/M3 fastener lengths, washers, nuts, thread engagement and tool access",
             "Camera support bracket material, local strength and attachment stiffness",
             "Carbon laminate edge distances, countersinks and CNC cutter compensation",
