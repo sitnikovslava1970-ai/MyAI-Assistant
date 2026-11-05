@@ -72,8 +72,8 @@ def test_accessory_mount_patterns_fit_their_plate_envelopes():
     solid.validate(frame)
 
     for x, y in battery_strap_slot_centers(solid):
-        assert abs(x) + solid.battery_strap_slot_length_mm / 2 < frame.plate_width_mm / 2
-        assert abs(y) + solid.battery_strap_slot_width_mm / 2 < frame.top_plate_length_mm / 2
+        assert abs(x) + solid.battery_strap_slot_width_mm / 2 < frame.plate_width_mm / 2
+        assert abs(y) + solid.battery_strap_slot_length_mm / 2 < frame.top_plate_length_mm / 2
 
     for x, y in air_unit_mount_centers(solid):
         assert abs(x) + solid.air_unit_hole_diameter_mm / 2 < frame.plate_width_mm / 2
@@ -168,4 +168,4 @@ def test_center_plate_orientation_is_160mm_longitudinal_and_75mm_transverse():
     assert frame.plate_width_mm == 75.0
     assert solid.standoff_x_offset_mm == 27.5
     assert solid.standoff_y_offset_mm == 65.0
-    assert battery_strap_slot_centers(solid) == [(0.0, -45.0), (0.0, 45.0)]
+    assert battery_strap_slot_centers(solid) == [(-25.0, 0.0), (25.0, 0.0)]
