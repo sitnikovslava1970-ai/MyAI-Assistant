@@ -1,5 +1,7 @@
 """Parametric specification helpers for a classic-X 7-inch FPV frame.
 
+Coordinate convention: X is transverse; Y is longitudinal and +Y points forward. The center plate is 75 mm in X by 160 mm in Y.
+
 This module calculates layout and mounting coordinates; it does not certify
 structural strength, vibration behaviour or CNC manufacturability.
 """
