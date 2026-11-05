@@ -23,11 +23,11 @@ class FPVFrameSolidSpec:
     arm_root_hole_longitudinal_pitch_mm: float = 12.0
     arm_root_hole_transverse_spacing_mm: float = 9.0
     stack_hole_diameter_mm: float = 3.2
-    standoff_x_offset_mm: float = 65.0
-    standoff_y_offset_mm: float = 27.5
+    standoff_x_offset_mm: float = 27.5
+    standoff_y_offset_mm: float = 65.0
     standoff_outer_diameter_mm: float = 6.0
     standoff_hole_diameter_mm: float = 3.2
-    battery_strap_slot_center_x_mm: float = 35.0
+    battery_strap_slot_center_y_mm: float = 45.0
     battery_strap_slot_length_mm: float = 24.0
     battery_strap_slot_width_mm: float = 4.0
     air_unit_mount_spacing_mm: float = 25.5
@@ -73,19 +73,21 @@ class FPVFrameSolidSpec:
             raise ValueError("Motor pad is too small for the motor hole pattern")
         if self.arm_root_hole_transverse_spacing_mm + self.arm_root_hole_diameter_mm >= frame.arm_width_mm:
             raise ValueError("Arm root bolt rows do not fit within the arm width")
-        if self.standoff_x_offset_mm >= frame.top_plate_length_mm / 2:
+        if self.standoff_x_offset_mm >= frame.plate_width_mm / 2:
             raise ValueError("Standoff X position is outside the center plate")
-        if self.standoff_y_offset_mm >= frame.plate_width_mm / 2:
+        if self.standoff_y_offset_mm >= frame.top_plate_length_mm / 2:
             raise ValueError("Standoff Y position is outside the center plate")
         if self.battery_strap_slot_length_mm <= self.battery_strap_slot_width_mm:
             raise ValueError("Battery strap slot length must exceed its width")
-        if self.battery_strap_slot_center_x_mm + self.battery_strap_slot_width_mm / 2 >= frame.top_plate_length_mm / 2:
-            raise ValueError("Battery strap slot is outside the center plate")
+        if self.battery_strap_slot_length_mm / 2 >= frame.plate_width_mm / 2:
+            raise ValueError("Battery strap slot length is outside the transverse plate dimension")
+        if abs(self.battery_strap_slot_center_y_mm) + self.battery_strap_slot_width_mm / 2 >= frame.top_plate_length_mm / 2:
+            raise ValueError("Battery strap slot is outside the longitudinal plate dimension")
         if self.air_unit_mount_spacing_mm + self.air_unit_hole_diameter_mm >= min(frame.top_plate_length_mm, frame.plate_width_mm):
             raise ValueError("DJI O4 mounting pattern does not fit the center plate")
-        if abs(self.air_unit_center_y_mm) + self.air_unit_mount_spacing_mm / 2 + self.air_unit_hole_diameter_mm / 2 > frame.plate_width_mm / 2:
+        if abs(self.air_unit_center_y_mm) + self.air_unit_mount_spacing_mm / 2 + self.air_unit_hole_diameter_mm / 2 > frame.top_plate_length_mm / 2:
             raise ValueError("DJI O4 mounting pattern is outside the center plate")
-        if abs(self.camera_base_mount_y_mm) + self.camera_base_hole_diameter_mm / 2 > frame.plate_width_mm / 2:
+        if abs(self.camera_base_mount_y_mm) + self.camera_base_hole_diameter_mm / 2 > frame.top_plate_length_mm / 2:
             raise ValueError("Camera base mounting holes are outside the lower plate")
         if self.camera_mount_slot_length_mm < self.camera_mount_slot_width_mm:
             raise ValueError("Camera adjustment slot length must exceed its width")
@@ -96,8 +98,8 @@ class FPVFrameSolidSpec:
 def arm_root_centers(frame: FPVFrameSpec) -> dict[str, tuple[float, float]]:
     """Intersection of each motor arm centerline with the center-plate envelope."""
     frame.validate()
-    half_x = frame.top_plate_length_mm / 2
-    half_y = frame.plate_width_mm / 2
+    half_x = frame.plate_width_mm / 2
+    half_y = frame.top_plate_length_mm / 2
     roots = {}
     for name, (mx, my) in frame.motor_centers().items():
         length = hypot(mx, my)
@@ -135,8 +137,8 @@ def arm_root_bolt_centers(
                     rx + ux * station + nx * side * solid.arm_root_hole_transverse_spacing_mm / 2,
                     ry + uy * station + ny * side * solid.arm_root_hole_transverse_spacing_mm / 2,
                 ))
-        plate_half_x = frame.top_plate_length_mm / 2
-        plate_half_y = frame.plate_width_mm / 2
+        plate_half_x = frame.plate_width_mm / 2
+        plate_half_y = frame.top_plate_length_mm / 2
         hole_radius = solid.arm_root_hole_diameter_mm / 2
         for x, y in points:
             if abs(x) + hole_radius > plate_half_x or abs(y) + hole_radius > plate_half_y:
@@ -160,8 +162,8 @@ def standoff_centers(solid: FPVFrameSolidSpec | None = None) -> list[tuple[float
 
 def battery_strap_slot_centers(solid: FPVFrameSolidSpec | None = None) -> list[tuple[float, float]]:
     solid = solid or FPVFrameSolidSpec()
-    return [(-solid.battery_strap_slot_center_x_mm, 0.0),
-            (solid.battery_strap_slot_center_x_mm, 0.0)]
+    return [(0.0, -solid.battery_strap_slot_center_y_mm),
+            (0.0, solid.battery_strap_slot_center_y_mm)]
 
 
 def air_unit_mount_centers(solid: FPVFrameSolidSpec | None = None) -> list[tuple[float, float]]:
@@ -218,11 +220,11 @@ def build_fpv_frame_parts(
         straight = length - width
         for x, y in centers:
             shape = shape - (Pos(x, y, z0) * Box(
-                width, straight, depth,
+                straight, width, depth,
                 align=(Align.CENTER, Align.CENTER, Align.MIN),
             ))
-            for end_y in (y - straight / 2, y + straight / 2):
-                shape = shape - (Pos(x, end_y, z0) * Cylinder(
+            for end_x in (x - straight / 2, x + straight / 2):
+                shape = shape - (Pos(end_x, y, z0) * Cylinder(
                     radius, depth,
                     align=(Align.CENTER, Align.CENTER, Align.MIN),
                 ))
@@ -239,8 +241,7 @@ def build_fpv_frame_parts(
     root_holes_by_arm = arm_root_bolt_centers(frame, solid)
     root_holes = [point for points in root_holes_by_arm.values() for point in points]
     stands = standoff_centers(solid)
-    strap_slots = [(-solid.battery_strap_slot_center_x_mm, 0.0),
-                   (solid.battery_strap_slot_center_x_mm, 0.0)]
+    strap_slots = battery_strap_slot_centers(solid)
     air_half = solid.air_unit_mount_spacing_mm / 2
     air_y = solid.air_unit_center_y_mm
     air_holes = [(-air_half, air_y-air_half), (-air_half, air_y+air_half),
@@ -251,7 +252,7 @@ def build_fpv_frame_parts(
     ]
     camera_foot_holes = camera_side_foot_centers(solid)
 
-    plate_outline = (frame.top_plate_length_mm, frame.plate_width_mm)
+    plate_outline = (frame.plate_width_mm, frame.top_plate_length_mm)
     lower = Box(*plate_outline, frame.plate_thickness_mm,
                 align=(Align.CENTER, Align.CENTER, Align.MIN))
     lower = drill(lower, stack_centers, solid.stack_hole_diameter_mm,
