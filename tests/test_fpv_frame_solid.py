@@ -170,7 +170,9 @@ def test_center_plate_orientation_is_160mm_longitudinal_and_75mm_transverse():
     assert frame.plate_width_mm == 75.0
     assert solid.standoff_x_offset_mm == 27.5
     assert solid.standoff_y_offset_mm == 65.0
-    assert battery_strap_slot_centers(solid) == [(-25.0, 0.0), (25.0, 0.0)]
+    assert solid.battery_strap_slot_center_x_mm == 20.0
+    assert solid.battery_strap_slot_center_y_mm == 25.0
+    assert battery_strap_slot_centers(solid) == [(-20.0, -25.0), (20.0, -25.0), (-20.0, 25.0), (20.0, 25.0)]
 
 
 def test_upper_plate_front_notch_clears_camera_and_preserves_standoff_rails():
