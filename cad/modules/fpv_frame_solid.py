@@ -24,11 +24,11 @@ class FPVFrameSolidSpec:
     arm_root_hole_transverse_spacing_mm: float = 9.0
     stack_hole_diameter_mm: float = 3.2
     standoff_x_offset_mm: float = 27.5
-    standoff_y_offset_mm: float = 65.0
+    standoff_y_offset_mm: float = 70.0
     standoff_outer_diameter_mm: float = 6.0
     standoff_hole_diameter_mm: float = 3.2
-    battery_strap_slot_center_x_mm: float = 20.0
-    battery_strap_slot_center_y_mm: float = 25.0
+    battery_strap_slot_center_x_mm: float = 25.0
+    battery_strap_slot_center_y_mm: float = 50.0
     battery_strap_slot_length_mm: float = 22.0
     battery_strap_slot_width_mm: float = 4.0
     air_unit_mount_spacing_mm: float = 25.5
@@ -163,7 +163,7 @@ def standoff_centers(solid: FPVFrameSolidSpec | None = None) -> list[tuple[float
 
 
 def battery_strap_slot_centers(solid: FPVFrameSolidSpec | None = None) -> list[tuple[float, float]]:
-    """Four rounded slots for two straps; each slot is 22 mm long along X."""
+    """Four rounded slots for two straps; each slot is 22 mm long along Y."""
     solid = solid or FPVFrameSolidSpec()
     return [
         (x, y)
@@ -273,11 +273,11 @@ def build_fpv_frame_parts(
         straight = length - width
         for x, y in centers:
             shape = shape - (Pos(x, y, z0) * Box(
-                straight, width, depth,
+                width, straight, depth,
                 align=(Align.CENTER, Align.CENTER, Align.MIN),
             ))
-            for end_x in (x - straight / 2, x + straight / 2):
-                shape = shape - (Pos(end_x, y, z0) * Cylinder(
+            for end_y in (y - straight / 2, y + straight / 2):
+                shape = shape - (Pos(x, end_y, z0) * Cylinder(
                     radius, depth,
                     align=(Align.CENTER, Align.CENTER, Align.MIN),
                 ))
