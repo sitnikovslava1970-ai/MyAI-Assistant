@@ -54,4 +54,6 @@ class FPVFrameSpec:
         self.validate()
         return {**asdict(self), "units": "mm", "motor_centers": self.motor_centers(),
                 "motor_holes": self.motor_holes(),
+                "center_plate_size_xy_mm": [self.plate_width_mm, self.top_plate_length_mm],
+                "coordinate_convention": {"x": "transverse", "y": "longitudinal; +Y forward"},
                 "note": "Layout reference only; verify all dimensions against actual components."}
