@@ -1,0 +1,73 @@
+project:
+  name: FPV_Advanced_Modular_X
+  revision: R01
+  units: mm
+  status: concept
+
+geometry:
+  configuration: hybrid_deadcat_x
+  motor_diagonal: 327.0
+  propeller_nominal_diameter: 177.8
+  motor_count: 4
+  arms_replaceable: true
+  motor_coordinates_status: pending_collision_check
+
+arms:
+  material: carbon_fiber_laminate
+  thickness: 6.0
+  width: 22.0
+  root_clamp: sandwich_bolted
+  root_fasteners: 4
+  fastener_type: M3
+  status: preliminary
+
+center_stack:
+  bottom_plate_thickness: 3.0
+  top_plate_thickness: 2.0
+  inner_mount_plate_thickness: 2.0
+  standoff_material: aluminum_7075
+  stack_mount_patterns:
+    - [30.5, 30.5, 3.0]
+    - [20.0, 20.0, 2.0]
+
+motor_mount:
+  patterns:
+    - [19.0, 19.0, 3.0]
+    - [16.0, 16.0, 3.0]
+  status: verify_motor_datasheet
+
+vtx_mount_adapters:
+  - [30.5, 30.5, 3.0]
+  - [25.5, 25.5, 2.0]
+  - [20.0, 20.0, 2.0]
+
+camera:
+  type: modular_side_plate
+  tilt_angle_default_deg: 30
+  angle_range_deg: [15, 50]
+  camera_system_candidate: DJI_O4_Air_Unit_Pro
+
+electronics_candidates:
+  motor:
+    class: 2807
+    kv_candidate: 1300
+    battery_candidate: 6S
+    status: shortlist_only
+  flight_stack:
+    mounting: 30.5x30.5
+    esc_target_continuous_A: 60
+    status: select_after_motor_prop_current_data
+  digital_vtx:
+    model: DJI_O4_Air_Unit_Pro
+    transmitter_dimensions: [33.5, 33.5, 13.0]
+    camera_dimensions: [25.55, 20.0, 23.3]
+  gps:
+    type: M10_class
+    mounting: isolated_rear_mast
+    status: select_exact_model
+
+manufacturing:
+  frame_material: carbon_fiber_laminate
+  metal_parts: aluminum_7075_or_stainless_fasteners
+  printed_parts: TPU
+  cnc_release: blocked_until_validation
