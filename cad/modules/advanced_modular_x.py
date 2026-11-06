@@ -145,6 +145,14 @@ def build_advanced_modular_x_parts(spec: AdvancedModularXSpec | None = None) -> 
     root_holes = [p for group in spec.arm_root_holes().values() for p in group]
     lower = drill(lower, root_holes, spec.root_hole_diameter_mm,
                   -1, spec.bottom_plate_thickness_mm + 2)
+    stand_centers = [
+        (-spec.standoff_x_mm, -spec.standoff_y_mm),
+        (-spec.standoff_x_mm, spec.standoff_y_mm),
+        (spec.standoff_x_mm, -spec.standoff_y_mm),
+        (spec.standoff_x_mm, spec.standoff_y_mm),
+    ]
+    lower = drill(lower, stand_centers, spec.stack_hole_diameter_mm,
+                  -1, spec.bottom_plate_thickness_mm + 2)
 
     upper_z = spec.bottom_plate_thickness_mm + spec.standoff_height_mm
     upper = Pos(0, 0, upper_z) * Box(
@@ -155,6 +163,8 @@ def build_advanced_modular_x_parts(spec: AdvancedModularXSpec | None = None) -> 
         h = spacing / 2
         stack_holes.extend([(-h, -h), (-h, h), (h, -h), (h, h)])
     upper = drill(upper, stack_holes, spec.stack_hole_diameter_mm,
+                  upper_z - 1, spec.top_plate_thickness_mm + 2)
+    upper = drill(upper, stand_centers, spec.stack_hole_diameter_mm,
                   upper_z - 1, spec.top_plate_thickness_mm + 2)
 
     parts: dict[str, Any] = {"PLATE_BOTTOM_3MM": lower, "PLATE_TOP_2MM": upper}
