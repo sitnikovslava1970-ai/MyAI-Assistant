@@ -10,7 +10,14 @@ geometry:
   propeller_nominal_diameter: 177.8
   motor_count: 4
   arms_replaceable: true
-  motor_coordinates_status: pending_collision_check
+  motor_coordinates_status: preliminary_layout_calculated
+  motor_coordinates_mm:
+    front_left: [-140.0, 112.0]
+    front_right: [140.0, 112.0]
+    rear_left: [-98.0, -112.0]
+    rear_right: [98.0, -112.0]
+  actual_diagonal_calculated: 326.83
+  minimum_nominal_prop_gap: 18.2
 
 arms:
   material: carbon_fiber_laminate
@@ -18,6 +25,8 @@ arms:
   width: 22.0
   root_clamp: sandwich_bolted
   root_fasteners: 4
+  root_hole_stations_mm: [-32.0, -16.0]
+  root_hole_row_spacing_mm: 12.0
   fastener_type: M3
   status: preliminary
 
@@ -34,7 +43,7 @@ motor_mount:
   patterns:
     - [19.0, 19.0, 3.0]
     - [16.0, 16.0, 3.0]
-  status: verify_motor_datasheet
+  status: 19x19_primary__16x16_requires_adapter
 
 vtx_mount_adapters:
   - [30.5, 30.5, 3.0]
