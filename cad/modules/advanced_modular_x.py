@@ -29,7 +29,7 @@ class AdvancedModularXSpec:
     root_hole_diameter_mm: float = 3.2
     motor_pattern_mm: float = 19.0
     motor_hole_diameter_mm: float = 3.2
-    motor_pad_size_mm: float = 28.0
+    motor_pad_size_mm: float = 34.0
     standoff_height_mm: float = 25.0
     standoff_x_mm: float = 65.0
     standoff_y_mm: float = 27.5
@@ -104,6 +104,8 @@ class AdvancedModularXSpec:
             raise ValueError("7-inch propeller envelopes violate the minimum clearance")
         if self.root_hole_row_spacing_mm + self.root_hole_diameter_mm >= self.arm_width_mm:
             raise ValueError("Arm-root bolt rows are too close to arm edges")
+        if self.motor_pad_size_mm < self.motor_pattern_mm + 2 * self.motor_hole_diameter_mm:
+            raise ValueError("Motor pad is too small for the selected motor bolt pattern")
         for name, points in self.arm_root_holes().items():
             for x, y in points:
                 edge = min(self.plate_length_mm / 2 - abs(x), self.plate_width_mm / 2 - abs(y))
@@ -200,9 +202,11 @@ def build_advanced_modular_x_parts(spec: AdvancedModularXSpec | None = None) -> 
         (spec.standoff_x_mm, -spec.standoff_y_mm),
         (spec.standoff_x_mm, spec.standoff_y_mm),
     ), 1):
-        parts[f"STANDOFF_{index}"] = Pos(x, y, spec.bottom_plate_thickness_mm) * Cylinder(
-            spec.standoff_diameter_mm / 2, spec.standoff_height_mm,
-            align=(Align.CENTER, Align.CENTER, Align.MIN))
+        outer = Cylinder(spec.standoff_diameter_mm / 2, spec.standoff_height_mm,
+                         align=(Align.CENTER, Align.CENTER, Align.MIN))
+        bore = Cylinder(spec.stack_hole_diameter_mm / 2, spec.standoff_height_mm + 2,
+                        align=(Align.CENTER, Align.CENTER, Align.MIN))
+        parts[f"STANDOFF_{index}"] = Pos(x, y, spec.bottom_plate_thickness_mm) * (outer - Pos(0, 0, -1) * bore)
     return parts
 
 
