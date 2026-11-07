@@ -10,6 +10,7 @@ from cad.modules.fpv_frame_solid import (
     air_unit_mount_centers,
     camera_base_mount_centers,
     camera_side_foot_centers,
+    air_unit_guard_mount_centers,
 )
 
 
@@ -158,3 +159,40 @@ def test_camera_support_foot_mount_pattern_has_four_m3_holes_inside_base_plate()
         assert abs(x) + solid.camera_base_hole_diameter_mm / 2 < solid.camera_base_width_mm / 2
         assert solid.camera_base_center_y_mm - solid.camera_base_length_mm / 2 + solid.camera_base_hole_diameter_mm / 2 < y
         assert y < solid.camera_base_center_y_mm + solid.camera_base_length_mm / 2 - solid.camera_base_hole_diameter_mm / 2
+
+
+
+def test_air_unit_guard_has_four_mounts_clear_of_existing_holes():
+    frame = FPVFrameSpec(arm_width_mm=18.0)
+    solid = FPVFrameSolidSpec()
+    guard = air_unit_guard_mount_centers(solid)
+    assert len(guard) == 4
+
+    for x, y in guard:
+        assert abs(x) + solid.air_unit_guard_post_diameter_mm / 2 < frame.top_plate_length_mm / 2
+        assert abs(y) + solid.air_unit_guard_post_diameter_mm / 2 < frame.plate_width_mm / 2
+
+    air_holes = air_unit_mount_centers(solid)
+    assert min(
+        ((gx-ax)**2 + (gy-ay)**2)**0.5
+        for gx, gy in guard for ax, ay in air_holes
+    ) > (solid.air_unit_guard_hole_diameter_mm + solid.air_unit_hole_diameter_mm) / 2
+
+    stack_holes = []
+    for spacing in (20.0, 30.5):
+        half = spacing / 2
+        stack_holes.extend([(-half, -half), (-half, half), (half, -half), (half, half)])
+    assert min(
+        ((gx-sx)**2 + (gy-sy)**2)**0.5
+        for gx, gy in guard for sx, sy in stack_holes
+    ) > (solid.air_unit_guard_hole_diameter_mm + solid.stack_hole_diameter_mm) / 2
+
+
+def test_air_unit_guard_rails_are_lower_than_module_and_leave_center_open():
+    solid = FPVFrameSolidSpec()
+    assert solid.air_unit_guard_drop_mm == 2.0
+    assert solid.air_unit_guard_rail_thickness_mm == 2.0
+    assert solid.air_unit_guard_rail_width_mm == 4.0
+    assert solid.air_unit_guard_mount_x_offset_mm > (
+        solid.camera_module_width_mm / 2 + solid.air_unit_guard_post_diameter_mm / 2
+    )
