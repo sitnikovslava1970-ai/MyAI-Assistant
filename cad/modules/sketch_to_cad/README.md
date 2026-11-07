@@ -9,6 +9,7 @@ It does not pretend that one photograph contains complete 3D engineering data.
 - Optional scale calibration from one known real-world length.
 - Heuristic confidence score and explicit limitations.
 - DXF export of the closed outer profile in millimetres.
+- Simple prismatic STEP/STL export after the user supplies a reference length and explicit thickness.
 
 ## API
 - POST /cad/sketch-to-cad/analyze — multipart image upload; optional reference_length_mm and threshold query parameters.
