@@ -36,9 +36,25 @@ def test_marks_symbol_dimensions_without_units_as_assumed_units():
     assert parsed[0].unit_source == "document_default"
 
 
+def test_metric_thread_designation_is_not_converted_by_document_units():
+    parsed = parse_dimension_text("M3", default_unit="in")
+    assert len(parsed) == 1
+    assert parsed[0].kind == "thread"
+    assert parsed[0].value_mm == 3
+    assert parsed[0].unit_source == "thread_designation"
+
+
+def test_thread_pitch_is_parsed_without_becoming_a_repeated_quantity():
+    parsed = parse_dimension_text("M3x0.5 M6 x 1 mm")
+    assert len(parsed) == 2
+    assert [(item.value_mm, item.pitch_mm) for item in parsed] == [(3, 0.5), (6, 1)]
+
+
 def test_rejects_invalid_default_unit_and_non_text_input():
     with pytest.raises(ValueError):
         parse_dimension_text("Ø10", default_unit="pixels")
+    with pytest.raises(ValueError):
+        parse_dimension_text("Ø10", default_unit=None)
     with pytest.raises(TypeError):
         parse_dimension_text(None)
 
