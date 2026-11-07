@@ -4,7 +4,7 @@ All values are millimetres unless a field explicitly says inches.
 
 - `dimensions.py`: reusable dimensional checks and hole patterns.
 - `fpv_frame.py`: classic-X motor coordinates and motor mounting-hole coordinates (315 mm wheelbase, 18 mm arm width, 5 mm arm thickness by default).
-- `fpv_frame_solid.py`: first-pass STEP-ready solids for two center plates, four removable arms, motor pads and four standoffs.
+- `fpv_frame_solid.py`: first-pass STEP-ready solids for two center plates, four removable arms, motor pads, four standoffs, camera bracket and a removable underside Air Unit side-skid guard.
 - `propeller.py`: 7-inch two-blade planform envelope and 5 mm bore defaults.
 - `assembly.py`: assembly item validation and bill of materials.
 - `dxf_export.py`: layered DXF export in millimetres.
@@ -12,7 +12,7 @@ All values are millimetres unless a field explicitly says inches.
 
 ## Engineering limitations
 
-The first FPV DXF remains a 2D layout reference. The new STEP solid builder creates separate top/bottom plate solids, four 18 mm-wide arms with widened motor pads, root and motor clearance holes, both 20 x 20 and 30.5 x 30.5 stack patterns, and four standoffs. The root-bolt pitch, standoff locations and motor-pad size are provisional engineering assumptions, not user-confirmed manufacturing dimensions. Camera side plates, DJI O4 clearances, battery slots, fastener hardware, CNC tool compensation and structural validation are still outstanding.
+The first FPV DXF remains a 2D layout reference. The new STEP solid builder creates separate top/bottom plate solids, four 18 mm-wide arms with widened motor pads, root and motor clearance holes, both 20 x 20 and 30.5 x 30.5 stack patterns, and four standoffs. The root-bolt pitch, standoff locations and motor-pad size are provisional engineering assumptions, not user-confirmed manufacturing dimensions. The removable Air Unit guard is a preliminary side-skid concept: two 4 x 30 x 2 mm rails sit 2 mm below the module, supported by four 4 mm posts and four new M2 clearance holes in the lower plate. The center remains open for airflow. Confirm hardware lengths, cable access, ground-clearance needs and impact loads before manufacture. Camera side plates, DJI O4 clearances, battery slots, fastener hardware, CNC tool compensation and structural validation remain outstanding.
 
 Only the 7-inch diameter, two blades and 5 mm bore are carried over as previously specified design inputs. Hub diameter/thickness, chord widths and sweep are provisional starter values and must be confirmed before any detailed design.
 
