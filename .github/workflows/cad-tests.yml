@@ -5,6 +5,7 @@ on:
     paths:
       - 'cad/**'
       - 'tests/**'
+      - 'pytest.ini'
       - '.github/workflows/cad-tests.yml'
   pull_request:
     paths:
