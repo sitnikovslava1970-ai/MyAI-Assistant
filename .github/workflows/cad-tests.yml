@@ -26,3 +26,15 @@ jobs:
         run: python -m pip install -r cad/requirements.txt
       - name: Run tests
         run: python -m pytest -q
+      - name: Export STEP assembly
+        run: |
+          python - <<'PY'
+          from cad.modules.advanced_modular_x import export_advanced_modular_x_step
+          export_advanced_modular_x_step("dist/FPV_Advanced_Modular_X_R01.step")
+          PY
+      - name: Upload STEP artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: FPV_Advanced_Modular_X_R01_STEP
+          path: dist/FPV_Advanced_Modular_X_R01.step
+          if-no-files-found: error
