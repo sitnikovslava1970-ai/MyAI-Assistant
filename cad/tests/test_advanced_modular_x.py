@@ -64,4 +64,4 @@ def test_lower_plate_has_arm_root_and_standoff_holes_but_no_stack_pattern():
         spec.plate_length_mm * spec.plate_width_mm * spec.bottom_plate_thickness_mm
         - removed_volume
     )
-    assert lower.volume == pytest.approx(expected_volume, abs=0.1)
+    assert abs(lower.volume - expected_volume) < 0.1
