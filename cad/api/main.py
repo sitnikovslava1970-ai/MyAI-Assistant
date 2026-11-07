@@ -127,7 +127,7 @@ async def sketch_to_cad_solid(
     thickness_mm: float = Query(..., gt=0),
     threshold: int = Query(default=180, ge=0, le=255),
 ):
-    """Extrude a calibrated 2D silhouette by an explicitly supplied thickness."""
+    """Extrude a calibrated profile, preserving detected internal through-holes."""
     fmt = format_name.lower()
     if fmt not in {"step", "stl"}:
         raise HTTPException(status_code=400, detail="Supported formats: step, stl")
