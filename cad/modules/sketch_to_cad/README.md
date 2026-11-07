@@ -10,7 +10,7 @@ that must be supplied by the user.
 - Simplified editable contour point lists in image-centred coordinates.
 - Optional scale calibration from one known real-world length.
 - Heuristic confidence score and explicit limitations.
-- DXF export with separate `SKETCH_OUTLINE` and `SKETCH_HOLES` layers.
+- DXF export with separate `SKETCH_OUTLINE` and `SKETCH_HOLES` layers; calibrated files declare millimetres, while uncalibrated pixel-coordinate files are marked unitless.
 - Prismatic STEP/STL export for calibrated profiles without internal holes,
   after the user supplies an explicit thickness.
 
