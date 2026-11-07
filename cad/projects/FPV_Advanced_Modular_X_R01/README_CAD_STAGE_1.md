@@ -19,3 +19,24 @@ The existing CAD stack in this repository is build123d, declared in cad/requirem
 
 ## Not a production release
 The model still requires execution in Codespaces, CAD kernel validation, fastener/nut-trap detailing, actual motor and electronics envelope checks, propeller swept-volume review, battery and wiring layout, mass properties, laminate specification, structural assessment and manufacturing review. No CNC DXF is released at this stage.
+
+## STEP geometry audit (2026-11-07)
+
+The first exported STEP was inspected after download from GitHub Actions:
+- 10 manifold solids were found and all 10 passed Open CASCADE BRep validity checks.
+- All solids have positive volume.
+- Pairwise Boolean common-volume checks found no positive-volume intersections.
+- The assembly bounding box is approximately 314 × 258 × 30 mm.
+
+This validates the exported B-rep topology for the current 10-solid concept model only. It does not validate fastener hardware, structural strength, electronics fit, wiring, propeller flex or manufacturing tolerances.
+
+## Explicitly not yet modelled
+
+- The additional 2 mm inner mounting plate listed in `parameters.yaml`: its Z location and exact geometry are not yet specified.
+- Complete arm clamp hardware: no nut traps, inserts, washers, bolt heads or final bolt lengths.
+- Electronics, battery, camera, GPS, antennas and wiring volumes.
+- A verified material/laminate definition and structural analysis.
+
+The current CAD contains the lower 3 mm plate, upper 2 mm plate, four arms and four standoffs only. The 20 × 20 and 30.5 × 30.5 stack-hole patterns are currently drilled in both center plates; this arrangement still needs design confirmation.
+
+See [CAD_AUDIT.md](CAD_AUDIT.md) for the audit results and production blockers. The model remains concept CAD and is not approved for CNC manufacture.
