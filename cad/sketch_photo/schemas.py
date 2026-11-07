@@ -32,6 +32,19 @@ class FeatureRegion:
 
 
 @dataclass(frozen=True)
+class CircleCandidate:
+    """A geometrically fitted circle proposal; not yet a confirmed hole or CAD feature."""
+    center_x_px: float
+    center_y_px: float
+    radius_px: float
+    radial_rms_error_px: float
+    relative_radial_error: float
+    angular_coverage: float
+    edge_pixel_count: int
+    confidence: Literal["medium", "high"]
+
+
+@dataclass(frozen=True)
 class SketchObservation:
     image_width_px: int
     image_height_px: int
@@ -42,6 +55,7 @@ class SketchObservation:
     scale_px_per_mm: float | None = None
     confidence: Literal["low", "medium", "high"] = "low"
     regions: tuple[FeatureRegion, ...] = ()
+    circle_candidates: tuple[CircleCandidate, ...] = ()
 
     def to_dict(self) -> dict:
         return asdict(self)

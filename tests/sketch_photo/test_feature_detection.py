@@ -15,6 +15,14 @@ def make_test_sketch():
     return buffer.getvalue()
 
 
+def make_circle_sketch():
+    image = Image.new("RGB", (100, 100), "white")
+    ImageDraw.Draw(image).ellipse((25, 25, 75, 75), outline="black", width=3)
+    buffer = BytesIO()
+    image.save(buffer, format="PNG")
+    return buffer.getvalue()
+
+
 def test_detects_edges_and_bounds_in_synthetic_sketch():
     result = detect_sketch_features(make_test_sketch())
     assert result.image_width_px == 120
@@ -38,13 +46,31 @@ def test_extracts_connected_edge_regions_with_image_coordinates():
     assert region.shape_hint in {"elongated", "compact_candidate", "irregular"}
 
 
-def test_empty_image_returns_no_regions():
+def test_fits_circle_candidate_from_synthetic_circle():
+    result = detect_sketch_features(make_circle_sketch())
+    assert result.circle_candidates
+    circle = result.circle_candidates[0]
+    assert circle.center_x_px == pytest.approx(50, abs=2)
+    assert circle.center_y_px == pytest.approx(50, abs=2)
+    assert circle.radius_px == pytest.approx(25, abs=2)
+    assert circle.relative_radial_error < 0.045
+    assert circle.angular_coverage >= 0.65
+    assert circle.confidence in {"medium", "high"}
+
+
+def test_rectangle_is_not_reported_as_a_circle_candidate():
+    result = detect_sketch_features(make_test_sketch())
+    assert result.circle_candidates == ()
+
+
+def test_empty_image_returns_no_regions_or_circles():
     image = Image.new("RGB", (64, 64), "white")
     buffer = BytesIO()
     image.save(buffer, format="PNG")
     result = detect_sketch_features(buffer.getvalue())
     assert result.bounds is None
     assert result.regions == ()
+    assert result.circle_candidates == ()
 
 
 def test_rejects_invalid_image_payload():
@@ -75,6 +101,7 @@ def test_sketch_analysis_api_returns_region_proposals():
     payload = response.json()
     assert payload["regions"]
     assert payload["regions"][0]["edge_pixel_count"] >= 6
+    assert payload["circle_candidates"] == []
 
 
 def test_sketch_analysis_api_rejects_invalid_image():

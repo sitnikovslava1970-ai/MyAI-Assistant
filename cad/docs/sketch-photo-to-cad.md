@@ -79,7 +79,7 @@ This feature supplements, rather than replaces, the existing build123d CAD gener
 - `POST /cad/compare-reference` — compare a generated model with supplied reference views.
 - `GET /cad/jobs/{job_id}` — retrieve processing status and report for asynchronous jobs.
 
-The first implemented inspection endpoint is `POST /cad/sketch/analyze`. It returns image-space edge bounds and connected-region proposals; it does not yet return fitted CAD curves or a 3D solid.
+The first implemented inspection endpoint is `POST /cad/sketch/analyze`. It returns image-space edge bounds, connected-region proposals, and conservative fitted-circle candidates; it does not yet confirm holes or return a 3D solid.
 
 ## User review workflow
 
@@ -124,7 +124,8 @@ Implemented:
 - EXIF orientation correction, grayscale conversion, and contrast normalization.
 - Edge-map generation and overall image-space bounds.
 - 8-connected edge-region proposals with bounding boxes, centers, pixel counts, aspect ratios, and conservative shape hints.
+- Conservative least-squares circle fitting with radial residual and angular-coverage rejection.
 - Explicit pixel-to-millimetre calibration from a user-confirmed reference length.
-- Synthetic-image tests for edge detection, region extraction, empty images, and scale calibration.
+- Synthetic-image tests for edge detection, connected regions, circle fitting, rectangle rejection, empty images, API responses, and scale calibration.
 
-Region proposals are not fitted circles, holes, arcs, or CAD contours. Shape hints such as `compact_candidate` are deliberately not treated as geometric recognition. The system still does not perform OCR, dimension reading, vectorization, or 3D reconstruction, and it does not infer physical dimensions without a scale reference.
+Circle candidates are geometric proposals, not confirmed holes or CAD features. A circle may represent an outer contour, a marking, or a hole; semantic classification and dimensional confirmation remain future work. Region proposals are not fitted arcs or complete CAD contours. The system still does not perform OCR, dimension reading, general vectorization, or 3D reconstruction, and it does not infer physical dimensions without a scale reference.

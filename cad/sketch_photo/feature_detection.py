@@ -3,18 +3,26 @@ import numpy as np
 from scipy import ndimage
 
 from cad.sketch_photo.image_preprocess import edge_map, load_grayscale_image
-from cad.sketch_photo.schemas import FeatureRegion, ImageBounds, SketchObservation
+from cad.sketch_photo.schemas import (
+    CircleCandidate, FeatureRegion, ImageBounds, SketchObservation,
+)
 
 MIN_REGION_PIXELS = 6
 MAX_REPORTED_REGIONS = 100
+MIN_CIRCLE_PIXELS = 24
+MIN_CIRCLE_RADIUS_PX = 5.0
+MAX_CIRCLE_RELATIVE_ERROR = 0.045
+MIN_CIRCLE_ANGULAR_COVERAGE = 0.65
+
+
+def _label_edges(edges):
+    edge_array = np.asarray(edges, dtype=np.uint8)
+    return ndimage.label(edge_array, structure=np.ones((3, 3), dtype=np.uint8))
 
 
 def _connected_edge_regions(edges) -> tuple[FeatureRegion, ...]:
     """Group 8-connected edge pixels into image-space region proposals."""
-    edge_array = np.asarray(edges, dtype=np.uint8)
-    labels, label_count = ndimage.label(
-        edge_array, structure=np.ones((3, 3), dtype=np.uint8)
-    )
+    labels, label_count = _label_edges(edges)
     if label_count == 0:
         return ()
 
@@ -54,6 +62,73 @@ def _connected_edge_regions(edges) -> tuple[FeatureRegion, ...]:
     return tuple(regions)
 
 
+def _fit_circle_candidates(edges) -> tuple[CircleCandidate, ...]:
+    """Fit circles conservatively to connected edge components.
+
+    Algebraic least squares proposes a center/radius; radial residual and angular
+    coverage reject most non-circular components. Results remain proposals only.
+    """
+    labels, label_count = _label_edges(edges)
+    if label_count == 0:
+        return ()
+
+    candidates = []
+    for label_id, region_slice in enumerate(ndimage.find_objects(labels), start=1):
+        if region_slice is None:
+            continue
+        component = labels[region_slice] == label_id
+        local_y, local_x = np.nonzero(component)
+        if len(local_x) < MIN_CIRCLE_PIXELS:
+            continue
+        y0, x0 = region_slice[0].start, region_slice[1].start
+        x = local_x.astype(float) + x0
+        y = local_y.astype(float) + y0
+        width, height = float(np.ptp(x) + 1), float(np.ptp(y) + 1)
+        if max(width, height) / max(1.0, min(width, height)) > 1.25:
+            continue
+
+        # x² + y² + A*x + B*y + C = 0
+        matrix = np.column_stack((x, y, np.ones_like(x)))
+        target = -(x * x + y * y)
+        try:
+            a, b, c = np.linalg.lstsq(matrix, target, rcond=None)[0]
+        except np.linalg.LinAlgError:
+            continue
+        center_x, center_y = -a / 2.0, -b / 2.0
+        radius_sq = center_x * center_x + center_y * center_y - c
+        if not np.isfinite(radius_sq) or radius_sq <= 0:
+            continue
+        radius = float(np.sqrt(radius_sq))
+        if radius < MIN_CIRCLE_RADIUS_PX:
+            continue
+
+        radial_distances = np.hypot(x - center_x, y - center_y)
+        residuals = radial_distances - radius
+        rms_error = float(np.sqrt(np.mean(residuals * residuals)))
+        relative_error = rms_error / radius
+        angles = np.mod(np.arctan2(y - center_y, x - center_x), 2 * np.pi)
+        occupied_bins = len(np.unique(np.floor(angles / (2 * np.pi) * 36).astype(int)))
+        angular_coverage = occupied_bins / 36.0
+        if (relative_error > MAX_CIRCLE_RELATIVE_ERROR
+                or angular_coverage < MIN_CIRCLE_ANGULAR_COVERAGE):
+            continue
+
+        confidence = "high" if relative_error <= 0.02 and angular_coverage >= 0.85 else "medium"
+        candidates.append(CircleCandidate(
+            center_x_px=round(float(center_x), 3),
+            center_y_px=round(float(center_y), 3),
+            radius_px=round(radius, 3),
+            radial_rms_error_px=round(rms_error, 4),
+            relative_radial_error=round(relative_error, 5),
+            angular_coverage=round(angular_coverage, 4),
+            edge_pixel_count=len(local_x),
+            confidence=confidence,
+        ))
+
+    candidates.sort(key=lambda item: (item.relative_radial_error, -item.angular_coverage))
+    return tuple(candidates[:MAX_REPORTED_REGIONS])
+
+
 def detect_sketch_features(data: bytes, threshold: int = 48,
                            source_kind: str = "sketch") -> SketchObservation:
     if source_kind not in {"sketch", "photo"}:
@@ -68,6 +143,7 @@ def detect_sketch_features(data: bytes, threshold: int = 48,
             int(xs.min()), int(ys.min()), int(xs.max()), int(ys.max())
         )
     regions = _connected_edge_regions(edges)
+    circle_candidates = _fit_circle_candidates(edges)
     confidence = "low" if bounds is None else (
         "medium" if len(xs) >= 30 and regions else "low"
     )
@@ -80,4 +156,5 @@ def detect_sketch_features(data: bytes, threshold: int = 48,
         source_kind=source_kind,
         confidence=confidence,
         regions=regions,
+        circle_candidates=circle_candidates,
     )
