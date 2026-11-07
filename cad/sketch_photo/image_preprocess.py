@@ -2,7 +2,7 @@
 from io import BytesIO
 from PIL import Image, ImageFilter, ImageOps, UnidentifiedImageError
 
-MAX_IMAGE_BYTES = 15 *  1024 * 1024
+MAX_IMAGE_BYTES = 15 * 1024 * 1024
 MAX_IMAGE_PIXELS = 24_000_000
 
 
@@ -13,11 +13,11 @@ def load_grayscale_image(data: bytes) -> Image.Image:
         raise ValueError("Image exceeds the 15 MB upload limit")
     try:
         image = Image.open(BytesIO(data))
+        if image.width * image.height > MAX_IMAGE_PIXELS:
+            raise ValueError("Image exceeds the 24 megapixel processing limit")
         image.load()
     except (UnidentifiedImageError, OSError) as exc:
         raise ValueError("Unsupported or corrupted image; use PNG, JPEG or TIFF") from exc
-    if image.width * image.height > MAX_IMAGE_PIXELS:
-        raise ValueError("Image exceeds the 24 megapixel processing limit")
     image = ImageOps.exif_transpose(image).convert("L")
     return ImageOps.autocontrast(image)
 
