@@ -81,10 +81,10 @@ class FPVFrameSolidSpec:
         if self.battery_strap_slot_length_mm <= self.battery_strap_slot_width_mm:
             raise ValueError("Battery strap slot length must exceed its width")
         for x, y in battery_strap_slot_centers(self):
-            if abs(x) + self.battery_strap_slot_length_mm / 2 >= frame.plate_width_mm / 2:
-                raise ValueError("Battery strap slot length is outside the transverse plate dimension")
-            if abs(y) + self.battery_strap_slot_width_mm / 2 >= frame.top_plate_length_mm / 2:
-                raise ValueError("Battery strap slot is outside the longitudinal plate dimension")
+            if abs(x) + self.battery_strap_slot_width_mm / 2 >= frame.plate_width_mm / 2:
+                raise ValueError("Battery strap slot width is outside the transverse plate dimension")
+            if abs(y) + self.battery_strap_slot_length_mm / 2 >= frame.top_plate_length_mm / 2:
+                raise ValueError("Battery strap slot length is outside the longitudinal plate dimension")
         if self.air_unit_mount_spacing_mm + self.air_unit_hole_diameter_mm >= min(frame.top_plate_length_mm, frame.plate_width_mm):
             raise ValueError("DJI O4 mounting pattern does not fit the center plate")
         if abs(self.air_unit_center_y_mm) + self.air_unit_mount_spacing_mm / 2 + self.air_unit_hole_diameter_mm / 2 > frame.top_plate_length_mm / 2:
