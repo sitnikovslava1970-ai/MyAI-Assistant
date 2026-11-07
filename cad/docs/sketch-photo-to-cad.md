@@ -66,7 +66,8 @@ This feature supplements, rather than replaces, the existing build123d CAD gener
   - `dimension_parser.py` — OCR-assisted dimension and unit extraction.
   - `scale_calibration.py` — pixel-to-unit calibration.
   - `geometry_inference.py` — conversion of observations into parametric feature proposals.
-  - `model_builder.py` — build123d solid construction.
+  - `profile_builder.py` — confirmed 2D profile construction.
+  - `solid_builder.py` — validated extrusion of confirmed profiles.
   - `similarity_check.py` — view projection and reference comparison.
   - `quality_report.py` — uncertainty, deviations, and validation report.
 - `tests/sketch_photo/` — deterministic tests using synthetic drawings and controlled reference images.
@@ -102,7 +103,7 @@ The system should not silently invent missing dimensions. It should ask for clar
 - Multi-view consistency and occlusion handling.
 - Closed planar build123d profile construction, boolean holes, and API validation.
 - Positive-Z extrusion, single-solid validity checks, and STEP/STL export for confirmed profiles.
-- Parametric model validity and export round-trips.
+- Parametric model validity, STEP/STL export endpoints, and export round-trips.
 - Similarity metrics on controlled test fixtures.
 - Failure cases: no scale reference, blurry image, severe occlusion, conflicting dimensions, and unsupported geometry.
 
@@ -132,7 +133,8 @@ Implemented:
 - Conservative OCR-text dimension parser for diameter, radius, metric thread, repeated-count, and linear annotations; metric thread pitch callouts (for example, M3x0.5) are retained. Explicit inch/centimetre units are normalized to millimetres. Plain unlabelled numbers are ignored. Parsed values remain review-required.
 - Conversion of fitted circle and rectangle candidates into millimetre 2D profile proposals using an explicit scale; image center is the coordinate origin and image Y is inverted to Cartesian CAD Y.
 - Closed planar build123d sketches from explicitly confirmed additive/subtractive circles and rectangles; detected circles are never assumed to be holes without user confirmation.
+- Positive-Z extrusion of confirmed profiles, one-solid and CAD validity checks, and STEP/STL export through `POST /cad/sketch/export/{format_name}`.
 - OCR-text dimension parsing for linear, diameter, radius, and thread annotations, repeated quantities, decimal commas, and explicit mm/cm/inch conversion. Bare numbers are ignored to reduce false positives; all parsed dimensions require user confirmation.
 - Synthetic-image tests for edge detection, connected regions, circle fitting, rectangle fitting/rejection, empty images, API responses, scale calibration, and 2D profile proposals.
 
-Circle candidates are geometric proposals, not confirmed holes or CAD features. A circle may represent an outer contour, a marking, or a hole; semantic classification and dimensional confirmation remain future work. Rectangle candidates are axis-aligned image-space proposals; rotated and perspective-distorted quadrilaterals are not yet handled. Profile proposals still require review and explicit feature intent before being passed to the closed planar sketch builder; the builder does not yet create 3D solids. Region proposals are not fitted arcs or complete CAD contours. The system still does not perform OCR image recognition itself (the new parser accepts OCR text from a future OCR provider), full general vectorization, or 3D reconstruction, and it does not infer physical dimensions without a scale reference.
+Circle candidates are geometric proposals, not confirmed holes or CAD features. A circle may represent an outer contour, a marking, or a hole; semantic classification and dimensional confirmation remain future work. Rectangle candidates are axis-aligned image-space proposals; rotated and perspective-distorted quadrilaterals are not yet handled. Profile proposals still require review and explicit feature intent before being passed to the closed planar sketch builder; the builder does not yet create 3D solids. Region proposals are not fitted arcs or complete CAD contours. The system still does not perform OCR image recognition itself (the parser accepts OCR text from a future OCR provider), full general vectorization, or automatic 3D reconstruction from uploaded images. Extrusion currently operates on explicitly confirmed circle/rectangle profiles, not on unreviewed image detections. Physical dimensions are not inferred without a scale reference.
