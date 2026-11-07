@@ -123,7 +123,7 @@ def analyze_sketch_image(image_bytes: bytes, reference_length_mm: float | None =
     return SketchAnalysis(
         width, height, outer_points, tuple(hole_contours),
         box_w * scale if calibrated else None,
-        box_h * scale if calibrated,
+        box_h * scale if calibrated else None,
         scale if calibrated else None, area, round(confidence, 3), tuple(warnings),
     )
 
