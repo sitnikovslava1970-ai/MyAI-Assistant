@@ -37,3 +37,15 @@ def test_parametric_assembly_builds_all_separate_parts_with_positive_volume():
     }
     assert set(parts) == expected
     assert all(part.volume > 0 for part in parts.values())
+
+def test_step_export_round_trip_preserves_all_ten_valid_solids(tmp_path):
+    from build123d import import_step
+    from cad.modules.advanced_modular_x import export_advanced_modular_x_step
+
+    output = export_advanced_modular_x_step(tmp_path / "round_trip.step")
+    imported = import_step(str(output))
+    solids = imported.solids()
+
+    assert len(solids) == 10
+    assert all(solid.is_valid for solid in solids)
+    assert all(solid.volume > 0 for solid in solids)
