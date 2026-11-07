@@ -59,6 +59,14 @@ class AdvancedModularXSpec:
                 gaps[f"{first}__{second}"] = distance - self.propeller_diameter_mm
         return gaps
 
+    def stack_hole_centers(self) -> list[tuple[float, float]]:
+        """Hole centers for both 20x20 and 30.5x30.5 mm stack standards."""
+        centers = []
+        for spacing in (20.0, 30.5):
+            half = spacing / 2
+            centers.extend(((-half, -half), (-half, half), (half, -half), (half, half)))
+        return centers
+
     def arm_root_centers(self) -> dict[str, tuple[float, float]]:
         roots = {}
         for name, (mx, my) in self.motor_centers().items():
@@ -116,8 +124,14 @@ class AdvancedModularXSpec:
                 edge = min(self.plate_length_mm / 2 - abs(x), self.plate_width_mm / 2 - abs(y))
                 if edge < self.root_hole_diameter_mm:
                     raise ValueError(f"{name} root bolt lacks plate edge distance")
-        if self.standoff_x_mm >= self.plate_length_mm / 2 or self.standoff_y_mm >= self.plate_width_mm / 2:
-            raise ValueError("Standoff coordinate is outside center plate")
+        if self.standoff_x_mm + self.standoff_diameter_mm / 2 >= self.plate_length_mm / 2:
+            raise ValueError("Standoff X coordinate leaves insufficient plate edge distance")
+        if self.standoff_y_mm + self.standoff_diameter_mm / 2 >= self.plate_width_mm / 2:
+            raise ValueError("Standoff Y coordinate leaves insufficient plate edge distance")
+        for x, y in self.stack_hole_centers():
+            if (abs(x) + self.stack_hole_diameter_mm / 2 >= self.plate_length_mm / 2
+                    or abs(y) + self.stack_hole_diameter_mm / 2 >= self.plate_width_mm / 2):
+                raise ValueError("Stack mounting hole lacks center-plate edge distance")
 
     def to_dict(self) -> dict:
         self.validate()
@@ -152,6 +166,9 @@ def build_advanced_modular_x_parts(spec: AdvancedModularXSpec | None = None) -> 
     root_holes = [p for group in spec.arm_root_holes().values() for p in group]
     lower = drill(lower, root_holes, spec.root_hole_diameter_mm,
                   -1, spec.bottom_plate_thickness_mm + 2)
+    stack_centers = spec.stack_hole_centers()
+    lower = drill(lower, stack_centers, spec.stack_hole_diameter_mm,
+                  -1, spec.bottom_plate_thickness_mm + 2)
     stand_centers = [
         (-spec.standoff_x_mm, -spec.standoff_y_mm),
         (-spec.standoff_x_mm, spec.standoff_y_mm),
@@ -165,11 +182,7 @@ def build_advanced_modular_x_parts(spec: AdvancedModularXSpec | None = None) -> 
     upper = Pos(0, 0, upper_z) * Box(
         spec.plate_length_mm, spec.plate_width_mm, spec.top_plate_thickness_mm,
         align=(Align.CENTER, Align.CENTER, Align.MIN))
-    stack_holes = []
-    for spacing in (20.0, 30.5):
-        h = spacing / 2
-        stack_holes.extend([(-h, -h), (-h, h), (h, -h), (h, h)])
-    upper = drill(upper, stack_holes, spec.stack_hole_diameter_mm,
+    upper = drill(upper, stack_centers, spec.stack_hole_diameter_mm,
                   upper_z - 1, spec.top_plate_thickness_mm + 2)
     upper = drill(upper, stand_centers, spec.stack_hole_diameter_mm,
                   upper_z - 1, spec.top_plate_thickness_mm + 2)
