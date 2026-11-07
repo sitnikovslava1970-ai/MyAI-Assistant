@@ -83,7 +83,7 @@ async def sketch_to_cad_analyze(
     reference_length_mm: float | None = Query(default=None, gt=0),
     threshold: int = Query(default=180, ge=0, le=255),
 ):
-    """Trace the dominant outer contour and return calibrated 2D points."""
+    """Trace the dominant outer contour and directly enclosed internal cutouts."""
     if image.content_type not in {"image/png", "image/jpeg"}:
         raise HTTPException(status_code=415, detail="Upload a PNG or JPEG image")
     payload = await image.read()
@@ -102,7 +102,7 @@ async def sketch_to_cad_dxf(
     reference_length_mm: float | None = Query(default=None, gt=0),
     threshold: int = Query(default=180, ge=0, le=255),
 ):
-    """Return the traced outer silhouette as a millimetre DXF profile."""
+    """Return the outer silhouette and detected holes as separate DXF layers."""
     if image.content_type not in {"image/png", "image/jpeg"}:
         raise HTTPException(status_code=415, detail="Upload a PNG or JPEG image")
     payload = await image.read()
