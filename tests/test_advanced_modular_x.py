@@ -7,6 +7,27 @@ import pytest
 from cad.modules.advanced_modular_x import AdvancedModularXSpec
 
 
+def test_step_ready_parts_build_as_valid_solids():
+    from cad.modules.advanced_modular_x import build_advanced_modular_x_parts
+
+    parts = build_advanced_modular_x_parts()
+    assert len(parts) == 10
+    assert "PLATE_BOTTOM_3MM" in parts
+    assert "PLATE_TOP_2MM" in parts
+    assert sum(name.startswith("ARM_") for name in parts) == 4
+    assert sum(name.startswith("STANDOFF_") for name in parts) == 4
+    assert all(part.is_valid for part in parts.values())
+    assert all(part.volume > 0 for part in parts.values())
+
+
+def test_advanced_modular_x_step_export_creates_nonempty_file(tmp_path):
+    from cad.modules.advanced_modular_x import export_advanced_modular_x_step
+
+    output = export_advanced_modular_x_step(tmp_path / "advanced_modular_x.step")
+    assert output.exists()
+    assert output.stat().st_size > 0
+
+
 def test_default_spec_matches_327_mm_diagonal_and_has_prop_clearance():
     spec = AdvancedModularXSpec()
     spec.validate()
