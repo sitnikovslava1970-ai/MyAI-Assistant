@@ -49,3 +49,17 @@ def test_step_export_round_trip_preserves_all_ten_valid_solids(tmp_path):
     assert len(solids) == 10
     assert all(solid.is_valid for solid in solids)
     assert all(solid.volume > 0 for solid in solids)
+
+def test_lower_plate_has_arm_root_and_standoff_holes_but_no_stack_pattern():
+    from math import pi
+    from cad.modules.advanced_modular_x import build_advanced_modular_x_parts
+
+    spec = AdvancedModularXSpec()
+    lower = build_advanced_modular_x_parts(spec)["PLATE_BOTTOM_3MM"]
+    hole_count = 4 * 4 + 4
+    expected_volume = (
+        spec.plate_length_mm * spec.plate_width_mm * spec.bottom_plate_thickness_mm
+        - hole_count * pi * (spec.root_hole_diameter_mm / 2) ** 2
+        * spec.bottom_plate_thickness_mm
+    )
+    assert lower.volume == pytest.approx(expected_volume, abs=0.1)
