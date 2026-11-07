@@ -116,3 +116,16 @@ The system should not silently invent missing dimensions. It should ask for clar
 ## Important limitations
 
 A single perspective photograph generally cannot uniquely determine true 3D dimensions or hidden surfaces. Accurate reconstruction requires scale information and preferably multiple calibrated views. Photogrammetry or learned 3D reconstruction may be integrated as optional providers later, but their output must still be converted into and checked as editable CAD geometry.
+
+
+## Phase 1 implementation status
+
+The first deterministic foundation is implemented in `cad/sketch_photo/`:
+
+- Raster loading for PNG/JPEG/TIFF with byte and pixel-count limits.
+- EXIF orientation correction, grayscale conversion, and contrast normalization.
+- Basic edge-map generation and image-space feature bounds.
+- Explicit pixel-to-millimetre calibration from a user-confirmed reference length.
+- Synthetic-image tests for feature detection and scale calibration.
+
+This is an initial 2D image-analysis foundation, not yet a full vectorizer, OCR/dimension reader, or 3D reconstruction engine. It deliberately does not infer physical dimensions without a scale reference.
