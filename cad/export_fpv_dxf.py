@@ -21,6 +21,72 @@ from cad.modules.fpv_frame import FPVFrameSpec
 from cad.modules.fpv_frame_solid import FPVFrameSolidSpec, build_fpv_frame_parts
 
 
+def _cut_entity_signature(entity) -> tuple:
+    """Return a stable signature for exact duplicate 2D cutting geometry."""
+    kind = entity.dxftype()
+    q = lambda value: round(float(value), 6)
+    if kind == "LINE":
+        points = sorted(((q(entity.dxf.start.x), q(entity.dxf.start.y)),
+                         (q(entity.dxf.end.x), q(entity.dxf.end.y))))
+        return (kind, tuple(points))
+    if kind == "CIRCLE":
+        return (kind, q(entity.dxf.center.x), q(entity.dxf.center.y), q(entity.dxf.radius))
+    if kind == "ARC":
+        return (kind, q(entity.dxf.center.x), q(entity.dxf.center.y),
+                q(entity.dxf.radius), q(entity.dxf.start_angle % 360),
+                q(entity.dxf.end_angle % 360))
+    if kind == "LWPOLYLINE":
+        points = tuple((q(x), q(y), q(bulge)) for x, y, bulge in entity.get_points("xyb"))
+        return (kind, bool(entity.closed), points)
+    raise RuntimeError(f"Unsupported DXF cutting entity {kind}")
+
+
+def _validate_dxf_cut_geometry(doc, part_id: str) -> None:
+    """Reject duplicate cut entities and open/disconnected outer profiles."""
+    cut_entities = [
+        entity for entity in doc.modelspace()
+        if entity.dxf.layer in {"OUTLINE", "HOLES"}
+    ]
+    signatures = {}
+    for entity in cut_entities:
+        signature = _cut_entity_signature(entity)
+        if signature in signatures:
+            raise RuntimeError(
+                f"Duplicate DXF cutting entity in {part_id}: "
+                f"{signatures[signature]} and {entity.dxftype()}"
+            )
+        signatures[signature] = entity.dxftype()
+
+    outline = [entity for entity in doc.modelspace() if entity.dxf.layer == "OUTLINE"]
+    if not outline:
+        raise RuntimeError(f"DXF outline is empty for {part_id}")
+    if all(entity.dxftype() == "LINE" for entity in outline):
+        adjacency = {}
+        for entity in outline:
+            start = (round(entity.dxf.start.x, 6), round(entity.dxf.start.y, 6))
+            end = (round(entity.dxf.end.x, 6), round(entity.dxf.end.y, 6))
+            adjacency.setdefault(start, set()).add(end)
+            adjacency.setdefault(end, set()).add(start)
+        if any(len(neighbors) != 2 for neighbors in adjacency.values()):
+            raise RuntimeError(f"DXF outline is open or branched for {part_id}")
+        visited = set()
+        pending = [next(iter(adjacency))]
+        while pending:
+            point = pending.pop()
+            if point in visited:
+                continue
+            visited.add(point)
+            pending.extend(adjacency[point] - visited)
+        if len(visited) != len(adjacency):
+            raise RuntimeError(f"DXF outline contains disconnected loops for {part_id}")
+    elif not (
+        len(outline) == 1
+        and outline[0].dxftype() == "LWPOLYLINE"
+        and outline[0].closed
+    ):
+        raise RuntimeError(f"DXF outline topology is not verifiably closed for {part_id}")
+
+
 def export_dxf_package(output_dir: Path) -> dict:
     output_dir.mkdir(parents=True, exist_ok=True)
     frame = FPVFrameSpec()
@@ -129,6 +195,7 @@ def export_dxf_package(output_dir: Path) -> dict:
         audit = check_doc.audit()
         if audit.errors:
             raise RuntimeError(f"DXF audit errors for {part_id}: {audit.errors}")
+        _validate_dxf_cut_geometry(check_doc, part_id)
 
         generated.append({
             "part_id": part_id,
@@ -139,6 +206,8 @@ def export_dxf_package(output_dir: Path) -> dict:
             "outer_wire_closed": outer_closed,
             "inner_wire_count": inner_count,
             "entity_count": len(check_entities),
+            "cut_geometry_duplicate_count": 0,
+            "outline_topology_checked": True,
             "units": "mm",
         })
 
