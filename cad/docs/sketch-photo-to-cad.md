@@ -62,7 +62,7 @@ This feature supplements, rather than replaces, the existing build123d CAD gener
 - `cad/sketch_photo/`
   - `schemas.py` — input, observation, dimension, and confidence data structures.
   - `image_preprocess.py` — image normalization and perspective preparation.
-  - `feature_detection.py` — connected edge regions and later primitive/annotation recognition.
+  - `feature_detection.py` — connected edge regions and conservative primitive proposals.
   - `dimension_parser.py` — OCR-assisted dimension and unit extraction.
   - `scale_calibration.py` — pixel-to-unit calibration.
   - `geometry_inference.py` — conversion of observations into parametric feature proposals.
@@ -79,7 +79,7 @@ This feature supplements, rather than replaces, the existing build123d CAD gener
 - `POST /cad/compare-reference` — compare a generated model with supplied reference views.
 - `GET /cad/jobs/{job_id}` — retrieve processing status and report for asynchronous jobs.
 
-The first implemented inspection endpoint is `POST /cad/sketch/analyze`. It returns image-space edge bounds, connected-region proposals, and conservative fitted-circle candidates; it does not yet confirm holes or return a 3D solid.
+The implemented inspection endpoint is `POST /cad/sketch/analyze`. It returns image-space edge bounds, connected-region proposals, and conservative fitted circle and axis-aligned rectangle candidates; it does not yet confirm holes or return a 3D solid.
 
 ## User review workflow
 
@@ -98,7 +98,7 @@ The system should not silently invent missing dimensions. It should ask for clar
 - Dimension parsing and unit conversion.
 - Scale calibration with known synthetic references.
 - Perspective and rotation normalization.
-- Circle, hole, line, arc, and contour detection.
+- Circle, rectangle, line, arc, and contour detection.
 - Multi-view consistency and occlusion handling.
 - Parametric model validity and export round-trips.
 - Similarity metrics on controlled test fixtures.
@@ -106,7 +106,7 @@ The system should not silently invent missing dimensions. It should ask for clar
 
 ## Implementation stages
 
-1. **Foundation:** schemas, image upload validation, connected edge-region extraction, and scale calibration.
+1. **Foundation:** schemas, image upload validation, connected edge-region extraction, primitive proposals, and scale calibration.
 2. **Dimensioned drawings:** dimension parsing, constrained 2D profiles, and extrusion.
 3. **Photographs:** single-view provisional geometry with uncertainty reporting.
 4. **Multi-view:** alignment and cross-view geometry reconciliation.
@@ -117,7 +117,7 @@ The system should not silently invent missing dimensions. It should ask for clar
 
 A single perspective photograph generally cannot uniquely determine true 3D dimensions or hidden surfaces. Accurate reconstruction requires scale information and preferably multiple calibrated views. Photogrammetry or learned 3D reconstruction may be integrated as optional providers later, but their output must still be converted into and checked as editable CAD geometry.
 
-## Phase 1 implementation status
+## Current implementation status
 
 Implemented:
 - Raster loading for PNG/JPEG/TIFF with byte and pixel-count limits.
@@ -125,7 +125,8 @@ Implemented:
 - Edge-map generation and overall image-space bounds.
 - 8-connected edge-region proposals with bounding boxes, centers, pixel counts, aspect ratios, and conservative shape hints.
 - Conservative least-squares circle fitting with radial residual and angular-coverage rejection.
+- Axis-aligned rectangle proposals requiring sufficient coverage on all four sides, with duplicate-box suppression.
 - Explicit pixel-to-millimetre calibration from a user-confirmed reference length.
-- Synthetic-image tests for edge detection, connected regions, circle fitting, rectangle rejection, empty images, API responses, and scale calibration.
+- Synthetic-image tests for edge detection, connected regions, circle fitting, rectangle fitting/rejection, empty images, API responses, and scale calibration.
 
-Circle candidates are geometric proposals, not confirmed holes or CAD features. A circle may represent an outer contour, a marking, or a hole; semantic classification and dimensional confirmation remain future work. Region proposals are not fitted arcs or complete CAD contours. The system still does not perform OCR, dimension reading, general vectorization, or 3D reconstruction, and it does not infer physical dimensions without a scale reference.
+Circle candidates are geometric proposals, not confirmed holes or CAD features. A circle may represent an outer contour, a marking, or a hole; semantic classification and dimensional confirmation remain future work. Rectangle candidates are axis-aligned image-space proposals; rotated and perspective-distorted quadrilaterals are not yet handled. Region proposals are not fitted arcs or complete CAD contours. The system still does not perform OCR, dimension reading, general vectorization, or 3D reconstruction, and it does not infer physical dimensions without a scale reference.

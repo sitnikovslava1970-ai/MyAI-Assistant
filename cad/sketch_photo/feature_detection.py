@@ -4,7 +4,8 @@ from scipy import ndimage
 
 from cad.sketch_photo.image_preprocess import edge_map, load_grayscale_image
 from cad.sketch_photo.schemas import (
-    CircleCandidate, FeatureRegion, ImageBounds, SketchObservation,
+    CircleCandidate, FeatureRegion, ImageBounds, RectangleCandidate,
+    SketchObservation,
 )
 
 MIN_REGION_PIXELS = 6
@@ -13,6 +14,9 @@ MIN_CIRCLE_PIXELS = 24
 MIN_CIRCLE_RADIUS_PX = 5.0
 MAX_CIRCLE_RELATIVE_ERROR = 0.045
 MIN_CIRCLE_ANGULAR_COVERAGE = 0.65
+MIN_RECTANGLE_SIDE_PX = 10
+MIN_RECTANGLE_SIDE_COVERAGE = 0.65
+RECTANGLE_EDGE_TOLERANCE_PX = 2
 
 
 def _label_edges(edges):
@@ -63,11 +67,7 @@ def _connected_edge_regions(edges) -> tuple[FeatureRegion, ...]:
 
 
 def _fit_circle_candidates(edges) -> tuple[CircleCandidate, ...]:
-    """Fit circles conservatively to connected edge components.
-
-    Algebraic least squares proposes a center/radius; radial residual and angular
-    coverage reject most non-circular components. Results remain proposals only.
-    """
+    """Fit circles conservatively; residual and angular coverage reject poor fits."""
     labels, label_count = _label_edges(edges)
     if label_count == 0:
         return ()
@@ -87,7 +87,6 @@ def _fit_circle_candidates(edges) -> tuple[CircleCandidate, ...]:
         if max(width, height) / max(1.0, min(width, height)) > 1.25:
             continue
 
-        # x² + y² + A*x + B*y + C = 0
         matrix = np.column_stack((x, y, np.ones_like(x)))
         target = -(x * x + y * y)
         try:
@@ -102,8 +101,7 @@ def _fit_circle_candidates(edges) -> tuple[CircleCandidate, ...]:
         if radius < MIN_CIRCLE_RADIUS_PX:
             continue
 
-        radial_distances = np.hypot(x - center_x, y - center_y)
-        residuals = radial_distances - radius
+        residuals = np.hypot(x - center_x, y - center_y) - radius
         rms_error = float(np.sqrt(np.mean(residuals * residuals)))
         relative_error = rms_error / radius
         angles = np.mod(np.arctan2(y - center_y, x - center_x), 2 * np.pi)
@@ -129,6 +127,86 @@ def _fit_circle_candidates(edges) -> tuple[CircleCandidate, ...]:
     return tuple(candidates[:MAX_REPORTED_REGIONS])
 
 
+def _fit_rectangle_candidates(edges) -> tuple[RectangleCandidate, ...]:
+    """Detect axis-aligned rectangle proposals using coverage of all four sides.
+
+    Rotated rectangles and perspective-distorted quadrilaterals are intentionally
+    not fitted by this first implementation.
+    """
+    labels, label_count = _label_edges(edges)
+    if label_count == 0:
+        return ()
+
+    proposals = []
+    for label_id, region_slice in enumerate(ndimage.find_objects(labels), start=1):
+        if region_slice is None:
+            continue
+        component = labels[region_slice] == label_id
+        local_y, local_x = np.nonzero(component)
+        if len(local_x) < MIN_REGION_PIXELS:
+            continue
+        y0, x0 = region_slice[0].start, region_slice[1].start
+        x = local_x.astype(int) + x0
+        y = local_y.astype(int) + y0
+        x_min, x_max = int(x.min()), int(x.max())
+        y_min, y_max = int(y.min()), int(y.max())
+        width, height = x_max - x_min + 1, y_max - y_min + 1
+        if min(width, height) < MIN_RECTANGLE_SIDE_PX:
+            continue
+
+        tol = RECTANGLE_EDGE_TOLERANCE_PX
+        left = np.abs(x - x_min) <= tol
+        right = np.abs(x - x_max) <= tol
+        top = np.abs(y - y_min) <= tol
+        bottom = np.abs(y - y_max) <= tol
+        left_cov = len(np.unique(y[left])) / height
+        right_cov = len(np.unique(y[right])) / height
+        top_cov = len(np.unique(x[top])) / width
+        bottom_cov = len(np.unique(x[bottom])) / width
+        coverage = (left_cov, right_cov, top_cov, bottom_cov)
+        if min(coverage) < MIN_RECTANGLE_SIDE_COVERAGE:
+            continue
+
+        # A rounded or oval contour can have high edge density but not four
+        # independently supported straight sides. Require each side's points
+        # to span most of its length and a non-degenerate bounding box.
+        score = float(sum(coverage) / 4)
+        proposals.append((score, RectangleCandidate(
+            bounds=ImageBounds(x_min, y_min, x_max, y_max),
+            center_x_px=round((x_min + x_max) / 2, 3),
+            center_y_px=round((y_min + y_max) / 2, 3),
+            width_px=float(width),
+            height_px=float(height),
+            side_coverage=tuple(round(float(v), 4) for v in coverage),
+            edge_pixel_count=len(local_x),
+            confidence="high" if min(coverage) >= 0.85 else "medium",
+        )))
+
+    proposals.sort(key=lambda item: (-item[0], -item[1].edge_pixel_count))
+    # Multiple parallel edge traces from one thick pencil/CAD stroke can yield
+    # nearly identical boxes. Keep only the strongest overlapping proposal.
+    selected = []
+    for _score, candidate in proposals:
+        a = candidate.bounds
+        duplicate = False
+        for existing in selected:
+            b = existing.bounds
+            ix = max(0, min(a.x_max_px, b.x_max_px) - max(a.x_min_px, b.x_min_px) + 1)
+            iy = max(0, min(a.y_max_px, b.y_max_px) - max(a.y_min_px, b.y_min_px) + 1)
+            intersection = ix * iy
+            area_a = a.width_px * a.height_px
+            area_b = b.width_px * b.height_px
+            union = area_a + area_b - intersection
+            if union and intersection / union >= 0.80:
+                duplicate = True
+                break
+        if not duplicate:
+            selected.append(candidate)
+        if len(selected) >= MAX_REPORTED_REGIONS:
+            break
+    return tuple(selected)
+
+
 def detect_sketch_features(data: bytes, threshold: int = 48,
                            source_kind: str = "sketch") -> SketchObservation:
     if source_kind not in {"sketch", "photo"}:
@@ -139,11 +217,10 @@ def detect_sketch_features(data: bytes, threshold: int = 48,
     ys, xs = np.nonzero(pixels)
     bounds = None
     if len(xs):
-        bounds = ImageBounds(
-            int(xs.min()), int(ys.min()), int(xs.max()), int(ys.max())
-        )
+        bounds = ImageBounds(int(xs.min()), int(ys.min()), int(xs.max()), int(ys.max()))
     regions = _connected_edge_regions(edges)
     circle_candidates = _fit_circle_candidates(edges)
+    rectangle_candidates = _fit_rectangle_candidates(edges)
     confidence = "low" if bounds is None else (
         "medium" if len(xs) >= 30 and regions else "low"
     )
@@ -157,4 +234,5 @@ def detect_sketch_features(data: bytes, threshold: int = 48,
         confidence=confidence,
         regions=regions,
         circle_candidates=circle_candidates,
+        rectangle_candidates=rectangle_candidates,
     )

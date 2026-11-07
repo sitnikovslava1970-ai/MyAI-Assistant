@@ -45,6 +45,19 @@ class CircleCandidate:
 
 
 @dataclass(frozen=True)
+class RectangleCandidate:
+    """An axis-aligned rectangle proposal, not a confirmed CAD profile."""
+    bounds: ImageBounds
+    center_x_px: float
+    center_y_px: float
+    width_px: float
+    height_px: float
+    side_coverage: tuple[float, float, float, float]
+    edge_pixel_count: int
+    confidence: Literal["medium", "high"]
+
+
+@dataclass(frozen=True)
 class SketchObservation:
     image_width_px: int
     image_height_px: int
@@ -56,6 +69,7 @@ class SketchObservation:
     confidence: Literal["low", "medium", "high"] = "low"
     regions: tuple[FeatureRegion, ...] = ()
     circle_candidates: tuple[CircleCandidate, ...] = ()
+    rectangle_candidates: tuple[RectangleCandidate, ...] = ()
 
     def to_dict(self) -> dict:
         return asdict(self)

@@ -63,7 +63,24 @@ def test_rectangle_is_not_reported_as_a_circle_candidate():
     assert result.circle_candidates == ()
 
 
-def test_empty_image_returns_no_regions_or_circles():
+def test_detects_axis_aligned_rectangle_candidate():
+    result = detect_sketch_features(make_test_sketch())
+    assert result.rectangle_candidates
+    rectangle = result.rectangle_candidates[0]
+    assert rectangle.center_x_px == pytest.approx(55, abs=2)
+    assert rectangle.center_y_px == pytest.approx(45, abs=2)
+    assert rectangle.width_px == pytest.approx(71, abs=4)
+    assert rectangle.height_px == pytest.approx(51, abs=4)
+    assert min(rectangle.side_coverage) >= 0.65
+    assert rectangle.confidence in {"medium", "high"}
+
+
+def test_circle_is_not_reported_as_rectangle_candidate():
+    result = detect_sketch_features(make_circle_sketch())
+    assert result.rectangle_candidates == ()
+
+
+def test_empty_image_returns_no_regions_or_primitives():
     image = Image.new("RGB", (64, 64), "white")
     buffer = BytesIO()
     image.save(buffer, format="PNG")
@@ -71,6 +88,7 @@ def test_empty_image_returns_no_regions_or_circles():
     assert result.bounds is None
     assert result.regions == ()
     assert result.circle_candidates == ()
+    assert result.rectangle_candidates == ()
 
 
 def test_rejects_invalid_image_payload():
@@ -89,7 +107,7 @@ def test_scale_calibration_rejects_zero_reference():
         pixels_per_mm(100, 0)
 
 
-def test_sketch_analysis_api_returns_region_proposals():
+def test_sketch_analysis_api_returns_region_and_primitive_proposals():
     from fastapi.testclient import TestClient
     from cad.api.main import app
 
@@ -102,6 +120,7 @@ def test_sketch_analysis_api_returns_region_proposals():
     assert payload["regions"]
     assert payload["regions"][0]["edge_pixel_count"] >= 6
     assert payload["circle_candidates"] == []
+    assert payload["rectangle_candidates"]
 
 
 def test_sketch_analysis_api_rejects_invalid_image():
