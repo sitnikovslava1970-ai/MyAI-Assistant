@@ -11,6 +11,7 @@ on:
     paths:
       - 'cad/**'
       - 'tests/**'
+      - 'pytest.ini'
       - '.github/workflows/cad-tests.yml'
 
 jobs:
