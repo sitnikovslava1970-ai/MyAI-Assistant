@@ -54,6 +54,14 @@ def test_dxf_contains_outer_contour_and_hole(tmp_path):
     assert all(entity.closed for entity in entities)
 
 
+
+def test_uncalibrated_dxf_is_marked_unitless(tmp_path):
+    result = analyze_sketch_image(rectangle_image())
+    path = tmp_path / "pixel_profile.dxf"
+    export_analysis_dxf(result, str(path))
+    doc = ezdxf.readfile(path)
+    assert doc.header["$INSUNITS"] == 0
+
 def test_solid_export_refuses_to_drop_detected_holes(tmp_path):
     result = analyze_sketch_image(plate_with_hole_image(), reference_length_mm=100)
     with pytest.raises(ValueError, match="internal holes is not supported"):
