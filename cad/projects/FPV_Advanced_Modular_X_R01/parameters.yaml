@@ -33,7 +33,12 @@ arms:
 center_stack:
   bottom_plate_thickness: 3.0
   top_plate_thickness: 2.0
-  inner_mount_plate_thickness: 2.0
+  inner_mount_plate:
+    thickness: 2.0
+    status: planned_not_modelled
+    z_position_mm: TBD
+    outline_and_openings: TBD
+    support_scheme: TBD
   standoff_material: aluminum_7075
   stack_mount_patterns:
     - [30.5, 30.5, 3.0]
