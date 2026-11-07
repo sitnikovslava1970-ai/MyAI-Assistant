@@ -21,6 +21,10 @@ Open http://127.0.0.1:8000/docs for the API. The sample endpoint creates a mount
 ## Browser viewer
 Open `3d_viewer/index.html` in a modern browser, choose an STL file, and orbit/zoom the model. The viewer loads Three.js modules from jsDelivr, so an internet connection is required. For reliable module loading, serve the repository folder over HTTP rather than opening the file directly.
 
+## Sketch-to-CAD
+
+The first Sketch-to-CAD stage is documented in cad/modules/sketch_to_cad/README.md. It provides PNG/JPEG silhouette analysis, optional scale calibration from one known dimension, and DXF outline export through the /cad/sketch-to-cad/analyze and /cad/sketch-to-cad/dxf endpoints. This is a 2D tracing stage, not yet automatic full 3D reconstruction.
+
 ## Initial scope
 - Parametric solid modelling with build123d, including a first-pass multi-part 7-inch Classic-X STEP assembly.
 - STEP and STL export from the same solid.
