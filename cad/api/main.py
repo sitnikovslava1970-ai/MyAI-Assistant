@@ -13,6 +13,8 @@ from cad.sketch_photo.feature_detection import detect_sketch_features
 from cad.sketch_photo.dimension_parser import parse_dimension_text
 from cad.sketch_photo.profile_builder import ConfirmedProfileFeature, build_confirmed_sketch
 from cad.sketch_photo.solid_builder import build_extruded_solid
+from cad.sketch_photo.geometry_inference import infer_profile_proposals
+from cad.sketch_photo.scale_calibration import pixels_per_mm
 import ezdxf
 
 app = FastAPI(title="MyAI Assistant CAD API", version="0.1.0")
@@ -245,6 +247,37 @@ def parse_sketch_dimensions(
         }
     except (TypeError, ValueError) as exc:
         raise HTTPException(status_code=422, detail=str(exc)) from exc
+
+
+@app.post("/cad/sketch/propose-profile")
+async def propose_sketch_profile(
+    file: UploadFile = File(...),
+    reference_pixel_length: float = Form(..., gt=0),
+    reference_length_mm: float = Form(..., gt=0),
+    threshold: int = Form(default=48, ge=1, le=254),
+    source_kind: str = Form(default="sketch"),
+):
+    """Detect image-space primitives and scale them using a user-confirmed reference."""
+    if source_kind not in {"sketch", "photo"}:
+        raise HTTPException(status_code=422, detail="source_kind must be 'sketch' or 'photo'")
+    try:
+        payload = await file.read()
+        observation = detect_sketch_features(payload, threshold, source_kind)
+        scale = pixels_per_mm(reference_pixel_length, reference_length_mm)
+        proposals = infer_profile_proposals(observation, scale)
+        return {
+            "units": "mm",
+            "scale_px_per_mm": round(scale, 6),
+            "reference_pixel_length": reference_pixel_length,
+            "reference_length_mm": reference_length_mm,
+            "profile_proposals": [item.to_dict() for item in proposals],
+            "requires_user_confirmation": True,
+            "automatic_geometry_approval": False,
+        }
+    except ValueError as exc:
+        raise HTTPException(status_code=422, detail=str(exc)) from exc
+    finally:
+        await file.close()
 
 
 @app.post("/cad/sketch/analyze")
