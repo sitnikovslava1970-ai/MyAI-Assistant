@@ -12,6 +12,7 @@ from build123d import Align, Box, Cylinder, Pos, export_step, export_stl
 from cad.sketch_photo.feature_detection import detect_sketch_features
 from cad.sketch_photo.dimension_parser import parse_dimension_text
 from cad.sketch_photo.profile_builder import ConfirmedProfileFeature, build_confirmed_sketch
+from cad.sketch_photo.solid_builder import build_extruded_solid
 import ezdxf
 
 app = FastAPI(title="MyAI Assistant CAD API", version="0.1.0")
@@ -50,6 +51,10 @@ class SketchProfileFeatureRequest(BaseModel):
 
 class SketchProfileRequest(BaseModel):
     features: list[SketchProfileFeatureRequest] = Field(min_length=1)
+
+
+class SketchSolidRequest(SketchProfileRequest):
+    thickness_mm: float
 
 
 class PropellerRequest(BaseModel):
@@ -174,6 +179,35 @@ def propeller_dxf(p: PropellerRequest):
         raise HTTPException(status_code=422, detail=str(exc)) from exc
     return Response(content=payload, media_type="application/dxf",
                     headers={"Content-Disposition": 'attachment; filename="propeller_planform.dxf"'})
+
+
+@app.post("/cad/sketch/export/{format_name}")
+def export_sketch_solid(format_name: str, p: SketchSolidRequest):
+    """Extrude a confirmed 2D profile and export one solid as STEP or STL."""
+    fmt = format_name.lower()
+    if fmt not in {"step", "stl"}:
+        raise HTTPException(status_code=400, detail="Supported formats: step, stl")
+    try:
+        features = tuple(
+            ConfirmedProfileFeature(**item.model_dump()) for item in p.features
+        )
+        solid = build_extruded_solid(features, p.thickness_mm)
+        with TemporaryDirectory() as temp:
+            out = Path(temp) / f"sketch_model.{fmt}"
+            if fmt == "step":
+                export_step(solid, str(out))
+                media_type = "application/step"
+            else:
+                export_stl(solid, str(out), tolerance=0.05, angular_tolerance=0.1)
+                media_type = "model/stl"
+            payload = out.read_bytes()
+    except ValueError as exc:
+        raise HTTPException(status_code=422, detail=str(exc)) from exc
+    return Response(
+        content=payload,
+        media_type=media_type,
+        headers={"Content-Disposition": f'attachment; filename="sketch_model.{fmt}"'},
+    )
 
 
 @app.post("/cad/sketch/build-profile")
