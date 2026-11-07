@@ -1,13 +1,14 @@
 """Minimal parametric CAD API: sample mounting plate to STEP, STL and DXF."""
 from pathlib import Path
 from tempfile import TemporaryDirectory
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, UploadFile, File, Query
 from fastapi.responses import Response
 from pydantic import BaseModel, Field
 from cad.modules.fpv_frame import FPVFrameSpec
 from cad.modules.fpv_frame_solid import FPVFrameSolidSpec, export_fpv_frame_step
 from cad.modules.advanced_modular_x import AdvancedModularXSpec, export_advanced_modular_x_step
 from cad.modules.propeller import PropellerSpec
+from cad.modules.sketch_to_cad import analyze_sketch_image, export_analysis_dxf
 from cad.modules.service import export_fpv_layout_dxf, export_propeller_planform_dxf
 from build123d import Align, Box, Cylinder, Pos, export_step, export_stl
 import ezdxf
@@ -74,6 +75,48 @@ class PropellerRequest(BaseModel):
     root_chord_mm: float = Field(default=18, gt=3, le=50)
     tip_chord_mm: float = Field(default=8, gt=2, le=30)
     sweep_mm: float = Field(default=8, ge=0, le=30)
+
+
+@app.post("/cad/sketch-to-cad/analyze")
+async def sketch_to_cad_analyze(
+    image: UploadFile = File(...),
+    reference_length_mm: float | None = Query(default=None, gt=0),
+    threshold: int = Query(default=180, ge=0, le=255),
+):
+    """Trace the dominant outer contour and return calibrated 2D points."""
+    if image.content_type not in {"image/png", "image/jpeg"}:
+        raise HTTPException(status_code=415, detail="Upload a PNG or JPEG image")
+    payload = await image.read()
+    if len(payload) > 15 * 1024 * 1024:
+        raise HTTPException(status_code=413, detail="Image must be 15 MB or smaller")
+    try:
+        result = analyze_sketch_image(payload, reference_length_mm, threshold)
+        return result.to_dict()
+    except ValueError as exc:
+        raise HTTPException(status_code=422, detail=str(exc)) from exc
+
+
+@app.post("/cad/sketch-to-cad/dxf")
+async def sketch_to_cad_dxf(
+    image: UploadFile = File(...),
+    reference_length_mm: float | None = Query(default=None, gt=0),
+    threshold: int = Query(default=180, ge=0, le=255),
+):
+    """Return the traced outer silhouette as a millimetre DXF profile."""
+    if image.content_type not in {"image/png", "image/jpeg"}:
+        raise HTTPException(status_code=415, detail="Upload a PNG or JPEG image")
+    payload = await image.read()
+    if len(payload) > 15 * 1024 * 1024:
+        raise HTTPException(status_code=413, detail="Image must be 15 MB or smaller")
+    try:
+        result = analyze_sketch_image(payload, reference_length_mm, threshold)
+        with TemporaryDirectory() as temp:
+            out = export_analysis_dxf(result, str(Path(temp) / "sketch_outline.dxf"))
+            data = Path(out).read_bytes()
+    except ValueError as exc:
+        raise HTTPException(status_code=422, detail=str(exc)) from exc
+    return Response(content=data, media_type="application/dxf",
+                    headers={"Content-Disposition": 'attachment; filename="sketch_outline.dxf"'})
 
 
 @app.get("/health")
