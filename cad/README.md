@@ -33,9 +33,9 @@ This is a starter foundation, not a production-certified CAD/CAM pipeline. Valid
 
 ## Sketch and photo to CAD
 
-The planned image-guided reconstruction workflow is specified in [Sketch-to-CAD and Photo-to-CAD](docs/sketch-photo-to-cad.md). It covers dimensioned and undimensioned sketches, single and multiple photographs, scale calibration, parametric build123d generation, reference comparison, uncertainty reporting, and manufacturing validation gates. This is a design specification; the image reconstruction pipeline is not yet implemented.
+The image-guided workflow is being implemented incrementally; see [Sketch-to-CAD and Photo-to-CAD](docs/sketch-photo-to-cad.md). Current foundations include raster analysis, scale calibration, OCR-text dimension parsing, reviewable 2D profile proposals, confirmed planar sketches, and extrusion/export of confirmed profiles. Automatic OCR, full vectorization, and automatic 3D reconstruction from uploaded images are not yet implemented.
 
 
 ## Sketch image analysis foundation
 
-The first image-analysis primitives are in `cad/sketch_photo/`: safe raster loading, EXIF normalization, grayscale/contrast preparation, edge-map generation, image bounds, and explicit pixel-to-mm scale calibration. See [the implementation specification](docs/sketch-photo-to-cad.md). This is an early 2D foundation; OCR, vector reconstruction, and 3D generation from images are not yet implemented.
+The first image-analysis primitives are in `cad/sketch_photo/`: safe raster loading, EXIF normalization, grayscale/contrast preparation, edge-map generation, image bounds, and explicit pixel-to-mm scale calibration. See [the implementation specification](docs/sketch-photo-to-cad.md). This is an early image-to-CAD foundation. Image analysis does not yet perform OCR or automatically approve dimensions and geometry; the 3D builder currently requires explicitly confirmed profile features.
