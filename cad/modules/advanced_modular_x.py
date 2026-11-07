@@ -193,8 +193,6 @@ def build_advanced_modular_x_parts(spec: AdvancedModularXSpec | None = None) -> 
     lower = drill(lower, root_holes, spec.root_hole_diameter_mm,
                   -1, spec.bottom_plate_thickness_mm + 2)
     stack_centers = spec.stack_hole_centers()
-    lower = drill(lower, stack_centers, spec.stack_hole_diameter_mm,
-                  -1, spec.bottom_plate_thickness_mm + 2)
     stand_centers = [
         (-spec.standoff_x_mm, -spec.standoff_y_mm),
         (-spec.standoff_x_mm, spec.standoff_y_mm),
