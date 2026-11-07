@@ -34,3 +34,8 @@ This is a starter foundation, not a production-certified CAD/CAM pipeline. Valid
 ## Sketch and photo to CAD
 
 The planned image-guided reconstruction workflow is specified in [Sketch-to-CAD and Photo-to-CAD](docs/sketch-photo-to-cad.md). It covers dimensioned and undimensioned sketches, single and multiple photographs, scale calibration, parametric build123d generation, reference comparison, uncertainty reporting, and manufacturing validation gates. This is a design specification; the image reconstruction pipeline is not yet implemented.
+
+
+## Sketch image analysis foundation
+
+The first image-analysis primitives are in `cad/sketch_photo/`: safe raster loading, EXIF normalization, grayscale/contrast preparation, edge-map generation, image bounds, and explicit pixel-to-mm scale calibration. See [the implementation specification](docs/sketch-photo-to-cad.md). This is an early 2D foundation; OCR, vector reconstruction, and 3D generation from images are not yet implemented.
