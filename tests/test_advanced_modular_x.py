@@ -31,6 +31,42 @@ def test_default_arm_root_bolt_pattern_is_four_holes_per_arm_inside_plate():
             assert edge_distance >= spec.root_hole_diameter_mm
 
 
+def test_rear_propeller_pair_has_18_2_mm_clearance():
+    spec = AdvancedModularXSpec()
+    spec.validate()
+
+    clearances = spec.prop_clearances()
+    assert clearances["rear_left__rear_right"] == pytest.approx(18.2, abs=0.01)
+    assert min(clearances.values()) == pytest.approx(18.2, abs=0.01)
+
+
+def test_both_stack_mounting_patterns_are_present_and_fit_plate():
+    spec = AdvancedModularXSpec()
+    spec.validate()
+
+    centers = spec.stack_hole_centers()
+    assert len(centers) == 8
+    assert len(set(centers)) == 8
+    for x, y in centers:
+        assert abs(x) + spec.stack_hole_diameter_mm / 2 < spec.plate_length_mm / 2
+        assert abs(y) + spec.stack_hole_diameter_mm / 2 < spec.plate_width_mm / 2
+
+
+def test_arm_root_holes_are_inside_arm_width():
+    spec = AdvancedModularXSpec()
+    roots = spec.arm_root_centers()
+    motors = spec.motor_centers()
+
+    for name, points in spec.arm_root_holes().items():
+        mx, my = motors[name]
+        rx, ry = roots[name]
+        length = (mx * mx + my * my) ** 0.5
+        nx, ny = -my / length, mx / length
+        for x, y in points:
+            transverse_offset = abs((x - rx) * nx + (y - ry) * ny)
+            assert transverse_offset + spec.root_hole_diameter_mm / 2 < spec.arm_width_mm / 2
+
+
 def test_default_motor_layout_is_mirrored():
     centers = AdvancedModularXSpec().motor_centers()
 
