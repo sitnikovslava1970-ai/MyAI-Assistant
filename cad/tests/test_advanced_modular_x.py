@@ -56,10 +56,12 @@ def test_lower_plate_has_arm_root_and_standoff_holes_but_no_stack_pattern():
 
     spec = AdvancedModularXSpec()
     lower = build_advanced_modular_x_parts(spec)["PLATE_BOTTOM_3MM"]
-    hole_count = 4 * 4 + 4
+    removed_volume = (
+        16 * pi * (spec.root_hole_diameter_mm / 2) ** 2
+        + 4 * pi * (spec.stack_hole_diameter_mm / 2) ** 2
+    ) * spec.bottom_plate_thickness_mm
     expected_volume = (
         spec.plate_length_mm * spec.plate_width_mm * spec.bottom_plate_thickness_mm
-        - hole_count * pi * (spec.root_hole_diameter_mm / 2) ** 2
-        * spec.bottom_plate_thickness_mm
+        - removed_volume
     )
     assert lower.volume == pytest.approx(expected_volume, abs=0.1)
