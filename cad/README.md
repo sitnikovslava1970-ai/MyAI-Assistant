@@ -16,7 +16,7 @@ pip install -r cad/requirements.txt
 uvicorn cad.api.main:app --reload
 ```
 
-Open http://127.0.0.1:8000/docs for the API. The sample endpoint creates a mounting plate and exports STEP, STL and DXF. The FPV assembly endpoint `POST /cad/fpv-frame/step` exports the first-pass Classic-X frame assembly.
+Open http://127.0.0.1:8000/docs for the API. The sample endpoint creates a mounting plate and exports STEP, STL and DXF. The FPV assembly endpoint `POST /cad/fpv-frame/step` exports the first-pass Classic-X frame assembly. The separate Advanced Modular X R01 concept is available through `POST /cad/advanced-modular-x/spec` (validated dimensions) and `POST /cad/advanced-modular-x/step` (STEP compound export). Its default geometry is the 327 mm Hybrid Deadcat X layout; it is a separate model from the 315 mm Classic-X endpoint.
 
 ## Browser viewer
 Open `3d_viewer/index.html` in a modern browser, choose an STL file, and orbit/zoom the model. The viewer loads Three.js modules from jsDelivr, so an internet connection is required. For reliable module loading, serve the repository folder over HTTP rather than opening the file directly.
