@@ -23,7 +23,7 @@ Audited STEP artifact: `FPV_Advanced_Modular_X_R01.step` from GitHub Actions run
 1. The current CAD builder exports only the lower 3 mm plate, upper 2 mm plate, four 22 × 6 mm arms and four 6 mm diameter standoffs.
 2. `parameters.yaml` lists an additional 2 mm inner mounting plate, but its Z position, outline, openings and support scheme are not defined and it is not yet modelled. Do not treat it as present in the STEP.
 3. The current arm attachment geometry has matching clearance holes in the lower plate and arms, but no explicit upper clamp plate, nut traps, threaded inserts, washers, bolt heads or fastener lengths. A complete clamp stack and tool access remain to be designed.
-4. The current builder drills the 20 × 20 and 30.5 × 30.5 stack patterns in both center plates. Confirm whether both plates are intended to carry both patterns; the stage-1 description currently implies the stack pattern is on the upper plate.
+4. Hole-pattern placement was reconciled after the initial audit: the lower plate now carries arm-root and standoff holes; the 20 × 20 and 30.5 × 30.5 flight-stack patterns are kept on the upper plate as described in the stage-1 design note. A dedicated regression test checks the lower-plate volume against this hole layout.
 5. The model includes a 19 × 19 mm motor hole pattern and 34 mm square motor pads. Exact motor mounting drawing and propeller model remain to be confirmed.
 6. Propeller-envelope calculations use ideal 177.8 mm diameter circles at motor centers. They do not include blade flex, hub geometry, manufacturing tolerances or dynamic deflection.
 7. No electronics, battery, camera, GPS, antenna, wiring or cable routing solids are included in the exported STEP.
