@@ -3,7 +3,7 @@
 Hybrid Deadcat X with four replaceable arms. First-pass geometry only.
 """
 from dataclasses import asdict, dataclass
-from math import atan2, degrees, hypot
+from math import atan2, degrees, hypot, isfinite
 from pathlib import Path
 from typing import Any
 
@@ -103,9 +103,11 @@ class AdvancedModularXSpec:
             self.motor_pad_size_mm, self.standoff_height_mm, self.standoff_x_mm,
             self.standoff_y_mm, self.standoff_diameter_mm, self.stack_hole_diameter_mm,
         )
+        stations = (self.root_hole_station_1_mm, self.root_hole_station_2_mm)
+        if not all(isfinite(v) for v in (*dimensions, *stations)):
+            raise ValueError("All dimensions and bolt stations must be finite numbers")
         if any(v <= 0 for v in dimensions):
             raise ValueError("All principal dimensions must be positive")
-        stations = (self.root_hole_station_1_mm, self.root_hole_station_2_mm)
         if any(station >= 0 or abs(station) >= self.arm_overlap_mm for station in stations):
             raise ValueError("Arm-root bolt stations must lie inside the arm overlap")
         if abs(stations[0] - stations[1]) <= self.root_hole_diameter_mm:
