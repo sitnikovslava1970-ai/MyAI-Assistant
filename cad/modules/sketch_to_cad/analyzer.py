@@ -161,7 +161,7 @@ def export_analysis_solid(analysis: SketchAnalysis, path: str, thickness_mm: flo
         raise ValueError("format_name must be 'step' or 'stl'")
     if len(analysis.contour_points_mm) < 3:
         raise ValueError("Analysis has no valid outer contour")
-    from build123d import Polygon, make_face, extrude, export_step, export_stl
+    from build123d import Polygon, make_face, extrude, export_step, export_stl, Pos
 
     profile = Polygon(*analysis.contour_points_mm, align=None)
     face = make_face(profile)
@@ -174,7 +174,7 @@ def export_analysis_solid(analysis: SketchAnalysis, path: str, thickness_mm: flo
             raise ValueError(f"Detected cutout {index} has fewer than 3 points")
         hole_profile = Polygon(*hole_points, align=None)
         hole_face = make_face(hole_profile)
-        cutter = extrude(hole_face, amount=thickness_mm, dir=(0, 0, 1))
+        cutter = Pos(0, 0, -1.0) * extrude(hole_face, amount=thickness_mm + 2.0, dir=(0, 0, 1))
         solid = solid - cutter
         if not solid.is_valid:
             raise ValueError(f"Boolean cut for detected hole {index} produced invalid geometry")
