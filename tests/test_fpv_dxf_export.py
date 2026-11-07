@@ -4,8 +4,10 @@ import pytest
 from cad.export_fpv_dxf import export_dxf_package, _validate_dxf_cut_geometry
 
 
-def test_preliminary_dxf_package_exports_flat_carbon_parts(tmp_path):
+def test_preliminary_dxf_package_exports_flat_carbon_parts(tmp_path, capsys):
     manifest = export_dxf_package(tmp_path)
+    captured = capsys.readouterr()
+    assert "WARNING, exporting non-planar shape to 2D format." not in captured.out
     assert len(manifest["generated_parts"]) == 9
 
     readme = (tmp_path / "README_DXF_PRELIMINARY.md").read_text(encoding="utf-8")
