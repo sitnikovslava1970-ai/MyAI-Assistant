@@ -505,7 +505,10 @@ def build_fpv_frame_parts(
         solid.air_unit_guard_mount_y_outer_mm
         + solid.air_unit_guard_mount_y_inner_mm
     ) / 2
-    rail_z_center = -13.0 - solid.air_unit_guard_rail_thickness_mm / 2
+    rail_z_center = (
+        -13.0 - solid.air_unit_guard_drop_mm
+        + solid.air_unit_guard_rail_thickness_mm / 2
+    )
     for side_name, x in (
         ("LEFT", -solid.air_unit_guard_mount_x_offset_mm),
         ("RIGHT", solid.air_unit_guard_mount_x_offset_mm),
