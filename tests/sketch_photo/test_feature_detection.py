@@ -61,3 +61,28 @@ def test_scale_calibration_uses_confirmed_reference_length():
 def test_scale_calibration_rejects_zero_reference():
     with pytest.raises(ValueError):
         pixels_per_mm(100, 0)
+
+
+def test_sketch_analysis_api_returns_region_proposals():
+    from fastapi.testclient import TestClient
+    from cad.api.main import app
+
+    response = TestClient(app).post(
+        "/cad/sketch/analyze",
+        files={"file": ("plate.png", make_test_sketch(), "image/png")},
+    )
+    assert response.status_code == 200
+    payload = response.json()
+    assert payload["regions"]
+    assert payload["regions"][0]["edge_pixel_count"] >= 6
+
+
+def test_sketch_analysis_api_rejects_invalid_image():
+    from fastapi.testclient import TestClient
+    from cad.api.main import app
+
+    response = TestClient(app).post(
+        "/cad/sketch/analyze",
+        files={"file": ("broken.png", b"not an image", "image/png")},
+    )
+    assert response.status_code == 422
