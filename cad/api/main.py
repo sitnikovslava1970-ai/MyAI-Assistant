@@ -1,7 +1,7 @@
 """Minimal parametric CAD API: sample mounting plate to STEP, STL and DXF."""
 from pathlib import Path
 from tempfile import TemporaryDirectory
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, File, Form, HTTPException, UploadFile
 from fastapi.responses import Response
 from pydantic import BaseModel, Field
 from cad.modules.fpv_frame import FPVFrameSpec
@@ -9,6 +9,7 @@ from cad.modules.fpv_frame_solid import FPVFrameSolidSpec, export_fpv_frame_step
 from cad.modules.propeller import PropellerSpec
 from cad.modules.service import export_fpv_layout_dxf, export_propeller_planform_dxf
 from build123d import Align, Box, Cylinder, Pos, export_step, export_stl
+from cad.sketch_photo.feature_detection import detect_sketch_features
 import ezdxf
 
 app = FastAPI(title="MyAI Assistant CAD API", version="0.1.0")
@@ -157,3 +158,22 @@ def propeller_dxf(p: PropellerRequest):
         raise HTTPException(status_code=422, detail=str(exc)) from exc
     return Response(content=payload, media_type="application/dxf",
                     headers={"Content-Disposition": 'attachment; filename="propeller_planform.dxf"'})
+
+
+@app.post("/cad/sketch/analyze")
+async def analyze_sketch_image(
+    file: UploadFile = File(...),
+    threshold: int = Form(default=48, ge=1, le=254),
+    source_kind: str = Form(default="sketch"),
+):
+    """Analyze a sketch/photo raster and return image-space edge observations."""
+    if source_kind not in {"sketch", "photo"}:
+        raise HTTPException(status_code=422, detail="source_kind must be 'sketch' or 'photo'")
+    try:
+        payload = await file.read()
+        observation = detect_sketch_features(payload, threshold, source_kind)
+        return observation.to_dict()
+    except ValueError as exc:
+        raise HTTPException(status_code=422, detail=str(exc)) from exc
+    finally:
+        await file.close()
