@@ -1,4 +1,3 @@
-from dataclasses import replace
 from io import BytesIO
 
 from PIL import Image, ImageDraw
@@ -12,7 +11,8 @@ def image_bytes(shape):
     image = Image.new("RGB", (120, 100), "white")
     draw = ImageDraw.Draw(image)
     if shape == "rectangle":
-        draw.rectangle((20, 20, 90, 70), outline="black", width=3)
+        # Center the synthetic rectangle on the image origin.
+        draw.rectangle((24, 24, 95, 75), outline="black", width=3)
     elif shape == "circle":
         draw.ellipse((35, 25, 85, 75), outline="black", width=3)
     buffer = BytesIO()
