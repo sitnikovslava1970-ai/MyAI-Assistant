@@ -24,3 +24,16 @@ def test_root_holes_remain_inside_bottom_plate():
         for x, y in points:
             assert abs(x) + spec.root_hole_diameter_mm / 2 < spec.plate_length_mm / 2
             assert abs(y) + spec.root_hole_diameter_mm / 2 < spec.plate_width_mm / 2
+
+
+def test_parametric_assembly_builds_all_separate_parts_with_positive_volume():
+    from cad.modules.advanced_modular_x import build_advanced_modular_x_parts
+
+    parts = build_advanced_modular_x_parts()
+    expected = {
+        "PLATE_BOTTOM_3MM", "PLATE_TOP_2MM",
+        "ARM_FRONT_LEFT", "ARM_FRONT_RIGHT", "ARM_REAR_LEFT", "ARM_REAR_RIGHT",
+        "STANDOFF_1", "STANDOFF_2", "STANDOFF_3", "STANDOFF_4",
+    }
+    assert set(parts) == expected
+    assert all(part.volume > 0 for part in parts.values())
