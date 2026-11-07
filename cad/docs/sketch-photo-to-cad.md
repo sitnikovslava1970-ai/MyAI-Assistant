@@ -80,7 +80,7 @@ This feature supplements, rather than replaces, the existing build123d CAD gener
 - `POST /cad/compare-reference` — compare a generated model with supplied reference views.
 - `GET /cad/jobs/{job_id}` — retrieve processing status and report for asynchronous jobs.
 
-The implemented inspection endpoint is `POST /cad/sketch/analyze`. It returns image-space edge bounds, connected-region proposals, and conservative fitted circle and axis-aligned rectangle candidates; it does not yet confirm holes or return a 3D solid. `POST /cad/sketch/build-profile` builds a closed planar sketch from explicitly confirmed additive/subtractive circle and rectangle features and returns profile metadata. `POST /cad/sketch/export/{format_name}` extrudes that confirmed profile by `thickness_mm` and exports one validated solid as STEP or STL. The export endpoint is limited to one solid body and does not imply manufacturing approval.
+`POST /cad/sketch/propose-profile` analyzes an uploaded image and converts detected circles/rectangles into millimetre proposals using a user-supplied pixel reference length and its real-world millimetre value. Every proposal is explicitly marked as requiring user confirmation. The inspection endpoint is `POST /cad/sketch/analyze`. It returns image-space edge bounds, connected-region proposals, and conservative fitted circle and axis-aligned rectangle candidates; it does not yet confirm holes or return a 3D solid. `POST /cad/sketch/build-profile` builds a closed planar sketch from explicitly confirmed additive/subtractive circle and rectangle features and returns profile metadata. `POST /cad/sketch/export/{format_name}` extrudes that confirmed profile by `thickness_mm` and exports one validated solid as STEP or STL. The export endpoint is limited to one solid body and does not imply manufacturing approval.
 
 ## User review workflow
 
@@ -129,7 +129,8 @@ Implemented:
 - 8-connected edge-region proposals with bounding boxes, centers, pixel counts, aspect ratios, and conservative shape hints.
 - Conservative least-squares circle fitting with radial residual and angular-coverage rejection.
 - Axis-aligned rectangle proposals requiring sufficient coverage on all four sides, with duplicate-box suppression.
-- Explicit pixel-to-millimetre calibration from a user-confirmed reference length.
+- Explicit pixel-to-millimetre calibration from a user-confirmed reference length, including finite-value validation.
+- API flow from uploaded sketch/photo to scaled, review-required circle/rectangle profile proposals using a user-supplied reference measurement.
 - Conservative OCR-text dimension parser for diameter, radius, metric thread, repeated-count, and linear annotations; metric thread pitch callouts (for example, M3x0.5) are retained. Explicit inch/centimetre units are normalized to millimetres. Plain unlabelled numbers are ignored. Parsed values remain review-required.
 - Conversion of fitted circle and rectangle candidates into millimetre 2D profile proposals using an explicit scale; image center is the coordinate origin and image Y is inverted to Cartesian CAD Y.
 - Closed planar build123d sketches from explicitly confirmed additive/subtractive circles and rectangles; detected circles are never assumed to be holes without user confirmation.
