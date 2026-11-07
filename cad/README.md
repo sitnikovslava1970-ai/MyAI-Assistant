@@ -23,7 +23,7 @@ Open `3d_viewer/index.html` in a modern browser, choose an STL file, and orbit/z
 
 ## Sketch-to-CAD
 
-The first Sketch-to-CAD stage is documented in cad/modules/sketch_to_cad/README.md. It provides PNG/JPEG silhouette analysis, optional scale calibration from one known dimension, and DXF outline export through the /cad/sketch-to-cad/analyze and /cad/sketch-to-cad/dxf endpoints. This is a 2D tracing stage, not yet automatic full 3D reconstruction.
+The first Sketch-to-CAD stage is documented in cad/modules/sketch_to_cad/README.md. It provides PNG/JPEG silhouette analysis, optional scale calibration from one known dimension, and DXF outline export through the /cad/sketch-to-cad/analyze and /cad/sketch-to-cad/dxf endpoints. The API also supports a simple prismatic STEP/STL extrusion when the user supplies a reference dimension and explicit thickness. This is not automatic full 3D reconstruction.
 
 ## Initial scope
 - Parametric solid modelling with build123d, including a first-pass multi-part 7-inch Classic-X STEP assembly.
