@@ -62,10 +62,14 @@ def test_uncalibrated_dxf_is_marked_unitless(tmp_path):
     doc = ezdxf.readfile(path)
     assert doc.header["$INSUNITS"] == 0
 
-def test_solid_export_refuses_to_drop_detected_holes(tmp_path):
+@pytest.mark.parametrize("format_name,suffix", [("step", ".step"), ("stl", ".stl")])
+def test_solid_export_preserves_detected_through_hole(tmp_path, format_name, suffix):
     result = analyze_sketch_image(plate_with_hole_image(), reference_length_mm=100)
-    with pytest.raises(ValueError, match="internal holes is not supported"):
-        export_analysis_solid(result, str(tmp_path / "plate.step"), 4, "step")
+    path = tmp_path / f"plate{suffix}"
+    exported = export_analysis_solid(result, str(path), 4, format_name)
+    assert exported == str(path)
+    assert path.exists()
+    assert path.stat().st_size > 0
 
 
 def test_without_reference_keeps_pixel_units():
