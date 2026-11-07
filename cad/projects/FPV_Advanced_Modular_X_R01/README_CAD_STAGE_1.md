@@ -37,6 +37,6 @@ This validates the exported B-rep topology for the current 10-solid concept mode
 - Electronics, battery, camera, GPS, antennas and wiring volumes.
 - A verified material/laminate definition and structural analysis.
 
-The current CAD contains the lower 3 mm plate, upper 2 mm plate, four arms and four standoffs only. The 20 × 20 and 30.5 × 30.5 stack-hole patterns are currently drilled in both center plates; this arrangement still needs design confirmation.
+The current CAD contains the lower 3 mm plate, upper 2 mm plate, four arms and four standoffs only. The lower plate carries arm-root and standoff holes; the 20 × 20 and 30.5 × 30.5 flight-stack patterns are kept on the upper plate. A regression test protects this separation.
 
 See [CAD_AUDIT.md](CAD_AUDIT.md) for the audit results and production blockers. The model remains concept CAD and is not approved for CNC manufacture.
