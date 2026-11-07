@@ -35,6 +35,7 @@ class AdvancedModularXSpec:
     standoff_y_mm: float = 27.5
     standoff_diameter_mm: float = 6.0
     stack_hole_diameter_mm: float = 3.2
+    min_plate_hole_web_mm: float = 2.0
 
     def motor_centers(self) -> dict[str, tuple[float, float]]:
         return {
@@ -102,6 +103,7 @@ class AdvancedModularXSpec:
             self.min_prop_gap_mm, self.motor_pattern_mm, self.motor_hole_diameter_mm,
             self.motor_pad_size_mm, self.standoff_height_mm, self.standoff_x_mm,
             self.standoff_y_mm, self.standoff_diameter_mm, self.stack_hole_diameter_mm,
+            self.min_plate_hole_web_mm,
         )
         stations = (self.root_hole_station_1_mm, self.root_hole_station_2_mm)
         if not all(isfinite(v) for v in (*dimensions, *stations)):
@@ -134,6 +136,28 @@ class AdvancedModularXSpec:
             if (abs(x) + self.stack_hole_diameter_mm / 2 >= self.plate_length_mm / 2
                     or abs(y) + self.stack_hole_diameter_mm / 2 >= self.plate_width_mm / 2):
                 raise ValueError("Stack mounting hole lacks center-plate edge distance")
+        plate_holes = [
+            (x, y, self.root_hole_diameter_mm / 2)
+            for points in self.arm_root_holes().values() for x, y in points
+        ]
+        plate_holes.extend(
+            (x, y, self.stack_hole_diameter_mm / 2)
+            for x, y in self.stack_hole_centers()
+        )
+        plate_holes.extend(
+            (x, y, self.stack_hole_diameter_mm / 2)
+            for x, y in (
+                (-self.standoff_x_mm, -self.standoff_y_mm),
+                (-self.standoff_x_mm, self.standoff_y_mm),
+                (self.standoff_x_mm, -self.standoff_y_mm),
+                (self.standoff_x_mm, self.standoff_y_mm),
+            )
+        )
+        for index, (x1, y1, r1) in enumerate(plate_holes):
+            for x2, y2, r2 in plate_holes[index + 1:]:
+                web = hypot(x2 - x1, y2 - y1) - r1 - r2
+                if web < self.min_plate_hole_web_mm:
+                    raise ValueError("Center-plate holes leave insufficient material web")
 
     def to_dict(self) -> dict:
         self.validate()
