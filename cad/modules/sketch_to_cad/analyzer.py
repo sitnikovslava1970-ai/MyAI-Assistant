@@ -129,13 +129,13 @@ def analyze_sketch_image(image_bytes: bytes, reference_length_mm: float | None =
 
 
 def export_analysis_dxf(analysis: SketchAnalysis, path: str) -> str:
-    """Write the outer profile and detected holes as closed millimetre DXF polylines."""
+    """Write closed DXF polylines; use millimetres only when the image is calibrated."""
     import ezdxf
 
     if len(analysis.contour_points_mm) < 3:
         raise ValueError("Analysis has no valid closed contour")
     doc = ezdxf.new("R2010")
-    doc.header["$INSUNITS"] = 4
+    doc.header["$INSUNITS"] = 4 if analysis.scale_mm_per_px is not None else 0
     doc.layers.new("SKETCH_OUTLINE", dxfattribs={"color": 7})
     doc.layers.new("SKETCH_HOLES", dxfattribs={"color": 1})
     msp = doc.modelspace()
