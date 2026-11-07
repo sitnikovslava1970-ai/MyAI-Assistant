@@ -11,6 +11,8 @@ def pixels_per_mm(pixel_length: float, real_length_mm: float) -> float:
 
 
 def pixels_to_mm(pixel_distance: float, scale_px_per_mm: float) -> float:
+    if not isfinite(pixel_distance) or pixel_distance < 0:
+        raise ValueError("pixel_distance must be finite and non-negative")
     if not isfinite(scale_px_per_mm) or scale_px_per_mm <= 0:
         raise ValueError("scale_px_per_mm must be finite and greater than zero")
     return pixel_distance / scale_px_per_mm
