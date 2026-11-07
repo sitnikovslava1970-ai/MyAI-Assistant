@@ -62,6 +62,7 @@ class AdvancedModularXRequest(BaseModel):
     standoff_y_mm: float = Field(default=27.5, gt=1, le=100)
     standoff_diameter_mm: float = Field(default=6.0, gt=2, le=20)
     stack_hole_diameter_mm: float = Field(default=3.2, gt=1, le=8)
+    min_plate_hole_web_mm: float = Field(default=2.0, gt=0, le=10)
 
 
 class PropellerRequest(BaseModel):
