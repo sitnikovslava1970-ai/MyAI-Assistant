@@ -11,6 +11,7 @@ from cad.modules.service import export_fpv_layout_dxf, export_propeller_planform
 from build123d import Align, Box, Cylinder, Pos, export_step, export_stl
 from cad.sketch_photo.feature_detection import detect_sketch_features
 from cad.sketch_photo.dimension_parser import parse_dimension_text
+from cad.sketch_photo.profile_builder import ConfirmedProfileFeature, build_confirmed_sketch
 import ezdxf
 
 app = FastAPI(title="MyAI Assistant CAD API", version="0.1.0")
@@ -35,6 +36,20 @@ class FPVFrameRequest(BaseModel):
     motor_hole_diameter_mm: float = Field(default=3.2, gt=1, le=8)
     standoff_height_mm: float = Field(default=25, gt=5, le=80)
     camera_angle_deg: float = Field(default=30, ge=0, le=60)
+
+
+class SketchProfileFeatureRequest(BaseModel):
+    kind: str
+    operation: str
+    center_x_mm: float
+    center_y_mm: float
+    width_mm: float = 0
+    height_mm: float = 0
+    radius_mm: float = 0
+
+
+class SketchProfileRequest(BaseModel):
+    features: list[SketchProfileFeatureRequest] = Field(min_length=1)
 
 
 class PropellerRequest(BaseModel):
@@ -159,6 +174,26 @@ def propeller_dxf(p: PropellerRequest):
         raise HTTPException(status_code=422, detail=str(exc)) from exc
     return Response(content=payload, media_type="application/dxf",
                     headers={"Content-Disposition": 'attachment; filename="propeller_planform.dxf"'})
+
+
+@app.post("/cad/sketch/build-profile")
+def build_sketch_profile(p: SketchProfileRequest):
+    """Build a closed 2D sketch from explicitly confirmed profile features."""
+    try:
+        features = tuple(
+            ConfirmedProfileFeature(**item.model_dump()) for item in p.features
+        )
+        sketch = build_confirmed_sketch(features)
+    except ValueError as exc:
+        raise HTTPException(status_code=422, detail=str(exc)) from exc
+    return {
+        "status": "profile_built",
+        "units": "mm",
+        "area_mm2": round(sketch.area, 4),
+        "face_count": len(sketch.faces()),
+        "feature_count": len(features),
+        "is_3d_solid": False,
+    }
 
 
 @app.post("/cad/sketch/parse-dimensions")
