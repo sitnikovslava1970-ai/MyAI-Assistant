@@ -26,4 +26,13 @@ def edge_map(image: Image.Image, threshold: int = 48) -> Image.Image:
     if not 1 <= threshold <= 254:
         raise ValueError("threshold must be between 1 and 254")
     edges = image.filter(ImageFilter.FIND_EDGES)
-    return edges.point(lambda value: 255 if value >= threshold else 0, mode="1")
+    binary = edges.point(lambda value: 255 if value >= threshold else 0, mode="L")
+    # FIND_EDGES treats the image boundary as an edge even for a uniform image.
+    # Suppress that artificial frame so it cannot become a false CAD feature.
+    width, height = binary.size
+    if width and height:
+        binary.paste(0, (0, 0, width, 1))
+        binary.paste(0, (0, height - 1, width, height))
+        binary.paste(0, (0, 0, 1, height))
+        binary.paste(0, (width - 1, 0, width, height))
+    return binary.convert("1")
