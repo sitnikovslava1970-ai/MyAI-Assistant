@@ -2,6 +2,7 @@ import cv2
 import ezdxf
 import numpy as np
 import pytest
+import trimesh
 
 from cad.modules.sketch_to_cad import analyze_sketch_image, export_analysis_dxf, export_analysis_solid
 
@@ -70,6 +71,10 @@ def test_solid_export_preserves_detected_through_hole(tmp_path, format_name, suf
     assert exported == str(path)
     assert path.exists()
     assert path.stat().st_size > 0
+    if format_name == "stl":
+        mesh = trimesh.load(path, force="mesh")
+        assert mesh.is_watertight
+        assert mesh.volume > 0
 
 
 def test_without_reference_keeps_pixel_units():
