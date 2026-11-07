@@ -23,7 +23,7 @@ Open `3d_viewer/index.html` in a modern browser, choose an STL file, and orbit/z
 
 ## Sketch-to-CAD
 
-The Sketch-to-CAD stage is documented in cad/modules/sketch_to_cad/README.md. It provides PNG/JPEG silhouette analysis, detection of directly enclosed holes, optional scale calibration from one known dimension, and DXF export with separate outer-profile and hole layers. The API also supports simple prismatic STEP/STL extrusion when the user supplies a reference dimension and explicit thickness; profiles with detected holes are currently refused for 3D export rather than exported incorrectly. This is not automatic full 3D reconstruction.
+The Sketch-to-CAD stage is documented in cad/modules/sketch_to_cad/README.md. It provides PNG/JPEG silhouette and enclosed-hole analysis, optional scale calibration from one known dimension, and DXF export with separate outer-profile and hole layers. The API also supports prismatic STEP/STL extrusion with detected through-holes when the user supplies a reference dimension and explicit thickness. This is not automatic full 3D reconstruction.
 
 ## Initial scope
 - Parametric solid modelling with build123d, including a first-pass multi-part 7-inch Classic-X STEP assembly.
