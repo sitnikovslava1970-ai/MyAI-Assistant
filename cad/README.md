@@ -29,3 +29,8 @@ Open `3d_viewer/index.html` in a modern browser, choose an STL file, and orbit/z
 - API validation and health endpoint.
 
 This is a starter foundation, not a production-certified CAD/CAM pipeline. Validate dimensions, tolerances, units, mesh quality and CNC toolpaths independently before manufacturing.
+
+
+## Sketch and photo to CAD
+
+The planned image-guided reconstruction workflow is specified in [Sketch-to-CAD and Photo-to-CAD](docs/sketch-photo-to-cad.md). It covers dimensioned and undimensioned sketches, single and multiple photographs, scale calibration, parametric build123d generation, reference comparison, uncertainty reporting, and manufacturing validation gates. This is a design specification; the image reconstruction pipeline is not yet implemented.
