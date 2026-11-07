@@ -33,6 +33,16 @@ class FPVFrameSolidSpec:
     air_unit_mount_spacing_mm: float = 25.5
     air_unit_hole_diameter_mm: float = 2.2
     air_unit_center_y_mm: float = -20.0
+    # Removable side-skid guard: two rails sit 2 mm below the Air Unit.
+    air_unit_guard_mount_x_offset_mm: float = 20.0
+    air_unit_guard_mount_y_outer_mm: float = -30.0
+    air_unit_guard_mount_y_inner_mm: float = -10.0
+    air_unit_guard_hole_diameter_mm: float = 2.2
+    air_unit_guard_rail_length_mm: float = 30.0
+    air_unit_guard_rail_width_mm: float = 4.0
+    air_unit_guard_rail_thickness_mm: float = 2.0
+    air_unit_guard_drop_mm: float = 2.0
+    air_unit_guard_post_diameter_mm: float = 4.0
     camera_module_width_mm: float = 25.55
     camera_module_depth_mm: float = 20.0
     camera_module_height_mm: float = 23.3
@@ -61,7 +71,8 @@ class FPVFrameSolidSpec:
     def validate(self, frame: FPVFrameSpec) -> None:
         frame.validate()
         for name, value in self.__dict__.items():
-            if name == "air_unit_center_y_mm":
+            if name in ("air_unit_center_y_mm", "air_unit_guard_mount_y_outer_mm",
+                        "air_unit_guard_mount_y_inner_mm"):
                 continue
             if value <= 0:
                 raise ValueError(f"{name} must be positive")
@@ -85,6 +96,24 @@ class FPVFrameSolidSpec:
             raise ValueError("DJI O4 mounting pattern does not fit the center plate")
         if abs(self.air_unit_center_y_mm) + self.air_unit_mount_spacing_mm / 2 + self.air_unit_hole_diameter_mm / 2 > frame.plate_width_mm / 2:
             raise ValueError("DJI O4 mounting pattern is outside the center plate")
+        guard_centers_y = (self.air_unit_guard_mount_y_outer_mm,
+                            self.air_unit_guard_mount_y_inner_mm)
+        if self.air_unit_guard_mount_x_offset_mm + self.air_unit_guard_post_diameter_mm / 2 >= frame.top_plate_length_mm / 2:
+            raise ValueError("Air Unit guard mounts are outside the center plate")
+        if any(abs(y) + self.air_unit_guard_post_diameter_mm / 2 >= frame.plate_width_mm / 2
+               for y in guard_centers_y):
+            raise ValueError("Air Unit guard mounts are outside the center plate")
+        guard_center_y = sum(guard_centers_y) / 2
+        if abs(guard_center_y) + self.air_unit_guard_rail_length_mm / 2 >= frame.plate_width_mm / 2:
+            raise ValueError("Air Unit guard rails are outside the center plate")
+        if self.air_unit_guard_rail_length_mm < abs(
+            self.air_unit_guard_mount_y_outer_mm - self.air_unit_guard_mount_y_inner_mm
+        ) + self.air_unit_guard_post_diameter_mm:
+            raise ValueError("Air Unit guard rails are too short for their supports")
+        if self.air_unit_guard_mount_x_offset_mm <= (
+            self.camera_module_width_mm / 2 + self.air_unit_guard_post_diameter_mm / 2
+        ):
+            raise ValueError("Air Unit guard supports overlap the Air Unit envelope")
         if abs(self.camera_base_mount_y_mm) + self.camera_base_hole_diameter_mm / 2 > frame.plate_width_mm / 2:
             raise ValueError("Camera base mounting holes are outside the lower plate")
         if self.camera_mount_slot_length_mm < self.camera_mount_slot_width_mm:
@@ -169,6 +198,20 @@ def air_unit_mount_centers(solid: FPVFrameSolidSpec | None = None) -> list[tuple
     half = solid.air_unit_mount_spacing_mm / 2
     cy = solid.air_unit_center_y_mm
     return [(-half, cy-half), (-half, cy+half), (half, cy-half), (half, cy+half)]
+
+
+def air_unit_guard_mount_centers(
+    solid: FPVFrameSolidSpec | None = None,
+) -> list[tuple[float, float]]:
+    """Four M2 guard-support centers outside the DJI O4 Air Unit envelope."""
+    solid = solid or FPVFrameSolidSpec()
+    return [
+        (x, y)
+        for x in (-solid.air_unit_guard_mount_x_offset_mm,
+                  solid.air_unit_guard_mount_x_offset_mm)
+        for y in (solid.air_unit_guard_mount_y_outer_mm,
+                  solid.air_unit_guard_mount_y_inner_mm)
+    ]
 
 
 def camera_base_mount_centers(solid: FPVFrameSolidSpec | None = None) -> list[tuple[float, float]]:
@@ -263,6 +306,9 @@ def build_fpv_frame_parts(
     lower = drill(lower, camera_base_holes, solid.camera_base_hole_diameter_mm,
                   -1.0, frame.plate_thickness_mm + 2.0)
     lower = drill(lower, air_holes, solid.air_unit_hole_diameter_mm,
+                  -1.0, frame.plate_thickness_mm + 2.0)
+    guard_holes = air_unit_guard_mount_centers(solid)
+    lower = drill(lower, guard_holes, solid.air_unit_guard_hole_diameter_mm,
                   -1.0, frame.plate_thickness_mm + 2.0)
     lower = add_rounded_slots(lower, strap_slots, solid.battery_strap_slot_length_mm,
                               solid.battery_strap_slot_width_mm, -1.0,
@@ -451,6 +497,47 @@ def build_fpv_frame_parts(
         0, solid.air_unit_center_y_mm, -13.0
     ) * Box(33.5, 33.5, 13.0,
             align=(Align.CENTER, Align.CENTER, Align.MIN))
+
+    # Removable underside side-skid guard. The rails are outside the Air Unit
+    # footprint and sit 2 mm below its bottom face, leaving the center open
+    # for airflow and access. Four M2 clearance holes are added to PLATE_BOTTOM.
+    guard_center_y = (
+        solid.air_unit_guard_mount_y_outer_mm
+        + solid.air_unit_guard_mount_y_inner_mm
+    ) / 2
+    rail_z_center = -13.0 - solid.air_unit_guard_rail_thickness_mm / 2
+    for side_name, x in (
+        ("LEFT", -solid.air_unit_guard_mount_x_offset_mm),
+        ("RIGHT", solid.air_unit_guard_mount_x_offset_mm),
+    ):
+        rail = Pos(x, guard_center_y, rail_z_center) * Box(
+            solid.air_unit_guard_rail_width_mm,
+            solid.air_unit_guard_rail_length_mm,
+            solid.air_unit_guard_rail_thickness_mm,
+            align=(Align.CENTER, Align.CENTER, Align.CENTER),
+        )
+        local_holes = [
+            (x, solid.air_unit_guard_mount_y_outer_mm),
+            (x, solid.air_unit_guard_mount_y_inner_mm),
+        ]
+        rail = drill(
+            rail, local_holes, solid.air_unit_guard_hole_diameter_mm,
+            rail_z_center - solid.air_unit_guard_rail_thickness_mm,
+            solid.air_unit_guard_rail_thickness_mm * 2,
+        )
+        parts[f"AIR_UNIT_GUARD_RAIL_{side_name}"] = rail
+
+    for index, (x, y) in enumerate(guard_holes, start=1):
+        post = Pos(x, y, -13.0) * Cylinder(
+            solid.air_unit_guard_post_diameter_mm / 2,
+            13.0,
+            align=(Align.CENTER, Align.CENTER, Align.MIN),
+        )
+        post = drill(
+            post, [(x, y)], solid.air_unit_guard_hole_diameter_mm,
+            -14.0, 15.0,
+        )
+        parts[f"AIR_UNIT_GUARD_POST_{index}"] = post
 
     return parts
 
