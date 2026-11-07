@@ -99,6 +99,7 @@ def test_default_motor_layout_is_mirrored():
     "changes",
     [
         {"min_prop_gap_mm": 0},
+        {"min_plate_hole_web_mm": 3.0},
         {"min_prop_gap_mm": float("nan")},
         {"wheelbase_mm": float("inf")},
         {"root_hole_row_spacing_mm": 0},
