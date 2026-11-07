@@ -6,6 +6,7 @@ from fastapi.responses import Response
 from pydantic import BaseModel, Field
 from cad.modules.fpv_frame import FPVFrameSpec
 from cad.modules.fpv_frame_solid import FPVFrameSolidSpec, export_fpv_frame_step
+from cad.modules.advanced_modular_x import AdvancedModularXSpec, export_advanced_modular_x_step
 from cad.modules.propeller import PropellerSpec
 from cad.modules.service import export_fpv_layout_dxf, export_propeller_planform_dxf
 from build123d import Align, Box, Cylinder, Pos, export_step, export_stl
@@ -33,6 +34,34 @@ class FPVFrameRequest(BaseModel):
     motor_hole_diameter_mm: float = Field(default=3.2, gt=1, le=8)
     standoff_height_mm: float = Field(default=25, gt=5, le=80)
     camera_angle_deg: float = Field(default=30, ge=0, le=60)
+
+
+class AdvancedModularXRequest(BaseModel):
+    wheelbase_mm: float = Field(default=327.0, gt=100, le=500)
+    front_motor_x_mm: float = Field(default=140.0, gt=1, le=250)
+    rear_motor_x_mm: float = Field(default=98.0, gt=1, le=250)
+    motor_y_mm: float = Field(default=112.0, gt=1, le=250)
+    propeller_diameter_mm: float = Field(default=177.8, gt=50, le=300)
+    min_prop_gap_mm: float = Field(default=10.0, gt=0, le=100)
+    plate_length_mm: float = Field(default=160.0, gt=20, le=300)
+    plate_width_mm: float = Field(default=75.0, gt=20, le=200)
+    bottom_plate_thickness_mm: float = Field(default=3.0, gt=0.5, le=10)
+    top_plate_thickness_mm: float = Field(default=2.0, gt=0.5, le=10)
+    arm_width_mm: float = Field(default=22.0, gt=1, le=50)
+    arm_thickness_mm: float = Field(default=6.0, gt=1, le=20)
+    arm_overlap_mm: float = Field(default=36.0, gt=1, le=100)
+    root_hole_station_1_mm: float = Field(default=-32.0, lt=0, ge=-100)
+    root_hole_station_2_mm: float = Field(default=-16.0, lt=0, ge=-100)
+    root_hole_row_spacing_mm: float = Field(default=12.0, gt=0, le=40)
+    root_hole_diameter_mm: float = Field(default=3.2, gt=1, le=8)
+    motor_pattern_mm: float = Field(default=19.0, gt=5, le=50)
+    motor_hole_diameter_mm: float = Field(default=3.2, gt=1, le=8)
+    motor_pad_size_mm: float = Field(default=34.0, gt=5, le=80)
+    standoff_height_mm: float = Field(default=25.0, gt=5, le=80)
+    standoff_x_mm: float = Field(default=65.0, gt=1, le=100)
+    standoff_y_mm: float = Field(default=27.5, gt=1, le=100)
+    standoff_diameter_mm: float = Field(default=6.0, gt=2, le=20)
+    stack_hole_diameter_mm: float = Field(default=3.2, gt=1, le=8)
 
 
 class PropellerRequest(BaseModel):
@@ -122,6 +151,35 @@ def fpv_frame_step(p: FPVFrameRequest):
         raise HTTPException(status_code=422, detail=str(exc)) from exc
     return Response(content=payload, media_type="application/step",
                     headers={"Content-Disposition": 'attachment; filename="fpv_7in_classic_x.step"'})
+
+
+@app.post("/cad/advanced-modular-x/spec")
+def advanced_modular_x_spec(p: AdvancedModularXRequest):
+    """Return validated dimensions for the 327 mm Hybrid Deadcat X concept."""
+    spec = AdvancedModularXSpec(**p.model_dump())
+    try:
+        return spec.to_dict()
+    except ValueError as exc:
+        raise HTTPException(status_code=422, detail=str(exc)) from exc
+
+
+@app.post("/cad/advanced-modular-x/step")
+def advanced_modular_x_step(p: AdvancedModularXRequest):
+    """Export separate Advanced Modular X parts as a STEP compound."""
+    spec = AdvancedModularXSpec(**p.model_dump())
+    try:
+        with TemporaryDirectory() as temp:
+            out = export_advanced_modular_x_step(
+                Path(temp) / "fpv_advanced_modular_x_r01.step", spec
+            )
+            payload = out.read_bytes()
+    except ValueError as exc:
+        raise HTTPException(status_code=422, detail=str(exc)) from exc
+    return Response(
+        content=payload,
+        media_type="application/step",
+        headers={"Content-Disposition": 'attachment; filename="fpv_advanced_modular_x_r01.step"'},
+    )
 
 
 @app.post("/cad/propeller/spec")
