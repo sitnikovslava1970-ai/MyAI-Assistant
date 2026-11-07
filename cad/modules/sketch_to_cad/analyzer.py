@@ -151,23 +151,34 @@ def export_analysis_dxf(analysis: SketchAnalysis, path: str) -> str:
 
 def export_analysis_solid(analysis: SketchAnalysis, path: str, thickness_mm: float,
                           format_name: str = "step") -> str:
-    """Extrude a calibrated outline; refuse cutouts until 3D boolean support is validated."""
+    """Extrude a calibrated 2D profile and subtract detected through-cutouts."""
     if thickness_mm <= 0:
         raise ValueError("thickness_mm must be positive")
     if analysis.scale_mm_per_px is None:
         raise ValueError("A reference dimension is required before 3D export")
-    if analysis.hole_contours_mm:
-        raise ValueError("3D export with internal holes is not supported yet; use DXF or remove holes")
     fmt = format_name.lower()
     if fmt not in {"step", "stl"}:
         raise ValueError("format_name must be 'step' or 'stl'")
+    if len(analysis.contour_points_mm) < 3:
+        raise ValueError("Analysis has no valid outer contour")
     from build123d import Polygon, make_face, extrude, export_step, export_stl
 
     profile = Polygon(*analysis.contour_points_mm, align=None)
     face = make_face(profile)
-    solid = extrude(face, amount=thickness_mm)
+    solid = extrude(face, amount=thickness_mm, dir=(0, 0, 1))
     if not solid.is_valid:
-        raise ValueError("Generated solid is not a valid closed CAD body")
+        raise ValueError("Generated outer solid is not a valid closed CAD body")
+
+    for index, hole_points in enumerate(analysis.hole_contours_mm, start=1):
+        if len(hole_points) < 3:
+            raise ValueError(f"Detected cutout {index} has fewer than 3 points")
+        hole_profile = Polygon(*hole_points, align=None)
+        hole_face = make_face(hole_profile)
+        cutter = extrude(hole_face, amount=thickness_mm, dir=(0, 0, 1))
+        solid = solid - cutter
+        if not solid.is_valid:
+            raise ValueError(f"Boolean cut for detected hole {index} produced invalid geometry")
+
     if fmt == "step":
         export_step(solid, path)
     else:
