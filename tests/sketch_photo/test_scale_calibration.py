@@ -19,7 +19,7 @@ def test_rejects_non_positive_or_non_finite_reference_measurements(pixel_length,
 
 
 @pytest.mark.parametrize("pixel_distance,scale", [
-    (10, 0), (10, -1), (float("inf"), 2), (10, float("nan")),
+    (-1, 2), (10, 0), (10, -1), (float("inf"), 2), (10, float("nan")),
 ])
 def test_rejects_invalid_pixel_to_mm_conversion_inputs(pixel_distance, scale):
     with pytest.raises(ValueError):
