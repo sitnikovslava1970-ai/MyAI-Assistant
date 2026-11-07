@@ -173,6 +173,16 @@ def test_air_unit_guard_has_four_mounts_clear_of_existing_holes():
         assert abs(y) + solid.air_unit_guard_post_diameter_mm / 2 < frame.plate_width_mm / 2
 
     air_holes = air_unit_mount_centers(solid)
+    root_holes = [
+        point
+        for points in arm_root_bolt_centers(frame, solid).values()
+        for point in points
+    ]
+    assert min(
+        ((gx-rx)**2 + (gy-ry)**2)**0.5
+        for gx, gy in guard for rx, ry in root_holes
+    ) > (solid.air_unit_guard_hole_diameter_mm + solid.arm_root_hole_diameter_mm) / 2
+
     assert min(
         ((gx-ax)**2 + (gy-ay)**2)**0.5
         for gx, gy in guard for ax, ay in air_holes
