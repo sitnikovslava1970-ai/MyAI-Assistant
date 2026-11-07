@@ -1,5 +1,6 @@
 """Convert fitted image-space primitives into millimetre profile proposals."""
 from dataclasses import asdict, dataclass
+from math import isfinite
 from typing import Literal
 
 from cad.sketch_photo.schemas import SketchObservation
@@ -30,8 +31,8 @@ def infer_profile_proposals(
     The scale must come from a user-confirmed reference length. Image Y is
     inverted so positive CAD Y points upward. The image center is the origin.
     """
-    if scale_px_per_mm <= 0:
-        raise ValueError("scale_px_per_mm must be greater than zero")
+    if not isfinite(scale_px_per_mm) or scale_px_per_mm <= 0:
+        raise ValueError("scale_px_per_mm must be finite and greater than zero")
 
     image_center_x = (observation.image_width_px - 1) / 2
     image_center_y = (observation.image_height_px - 1) / 2
