@@ -1,7 +1,6 @@
 """Dimensional validation tests for the Advanced Modular X R01 concept."""
 
 from dataclasses import replace
-import math
 
 import pytest
 
