@@ -14,7 +14,7 @@ import warnings
 from pathlib import Path
 
 import ezdxf
-from build123d import Axis
+from build123d import Axis, Location
 from build123d.exporters import ColorIndex, ExportDXF
 
 from cad.modules.fpv_frame import FPVFrameSpec
@@ -162,15 +162,39 @@ def export_dxf_package(output_dir: Path) -> dict:
             if any(not wire.is_closed for wire in inner):
                 raise RuntimeError(f"Open internal profile in {part_id}")
 
+            # ExportDXF writes XY coordinates and expects z=0. The selected
+            # top face is horizontal but may sit at the part's physical Z height.
+            # Move its wires onto XY without changing their X/Y geometry.
+            outer_bounds = outer.bounding_box()
+            z_min = outer_bounds.min.Z
+            z_max = outer_bounds.max.Z
+            if abs(z_max - z_min) > 1e-6:
+                raise RuntimeError(
+                    f"Selected DXF outline is not parallel to XY for {part_id}: "
+                    f"Z range {z_min:g}..{z_max:g} mm"
+                )
+            xy_offset = Location((0, 0, -z_min))
+            outer_xy = outer.moved(xy_offset)
+            inner_xy = []
+            for wire in inner:
+                bounds = wire.bounding_box()
+                if abs(bounds.max.Z - bounds.min.Z) > 1e-6:
+                    raise RuntimeError(
+                        f"Selected DXF hole wire is not parallel to XY for {part_id}"
+                    )
+                if abs(bounds.min.Z - z_min) > 1e-5:
+                    raise RuntimeError(
+                        f"DXF outline and hole wires are on different Z planes for {part_id}"
+                    )
+                inner_xy.append(wire.moved(xy_offset))
+
             exporter = ExportDXF()
             exporter.add_layer("OUTLINE", color=ColorIndex.BLACK, line_weight=0.25)
             exporter.add_layer("HOLES", color=ColorIndex.BLUE, line_weight=0.18)
             exporter.add_layer("NOTES", color=ColorIndex.GRAY, line_weight=0.13)
-            with warnings.catch_warnings():
-                warnings.filterwarnings("ignore", message="Exporting non-planar shape to 2D format")
-                exporter.add_shape(outer, layer="OUTLINE")
-                if inner:
-                    exporter.add_shape(inner, layer="HOLES")
+            exporter.add_shape(outer_xy, layer="OUTLINE")
+            if inner_xy:
+                exporter.add_shape(inner_xy, layer="HOLES")
             exporter.write(str(file_path))
 
             doc = ezdxf.readfile(file_path)
