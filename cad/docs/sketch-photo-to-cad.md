@@ -95,7 +95,7 @@ The system should not silently invent missing dimensions. It should ask for clar
 
 ## Testing
 
-- Dimension parsing and unit conversion.
+- Dimension parsing and unit conversion, including diameter/radius/thread symbols, repeated quantities, decimal commas, and explicit inch/centimetre conversion.
 - Scale calibration with known synthetic references.
 - Perspective and rotation normalization.
 - Circle, rectangle, line, arc, and contour detection.
@@ -126,8 +126,8 @@ Implemented:
 - 8-connected edge-region proposals with bounding boxes, centers, pixel counts, aspect ratios, and conservative shape hints.
 - Conservative least-squares circle fitting with radial residual and angular-coverage rejection.
 - Axis-aligned rectangle proposals requiring sufficient coverage on all four sides, with duplicate-box suppression.
-- Explicit pixel-to-millimetre calibration from a user-confirmed reference length.
-- Conversion of fitted circle and rectangle candidates into millimetre 2D profile proposals using an explicit scale; image center is the coordinate origin and image Y is inverted to Cartesian CAD Y.
+- Explicit pixel-to-millimetre calibration from a user-confirmed reference length.\n- Conservative OCR-text dimension parser for diameter, radius, thread, repeated-count, and linear annotations; explicit inch/centimetre units are normalized to millimetres. Plain unlabelled numbers are ignored. Parsed values remain review-required.
+- Conversion of fitted circle and rectangle candidates into millimetre 2D profile proposals using an explicit scale; image center is the coordinate origin and image Y is inverted to Cartesian CAD Y.\n- OCR-text dimension parsing for linear, diameter, radius, and thread annotations, repeated quantities, decimal commas, and explicit mm/cm/inch conversion. Bare numbers are ignored to reduce false positives; all parsed dimensions require user confirmation.
 - Synthetic-image tests for edge detection, connected regions, circle fitting, rectangle fitting/rejection, empty images, API responses, scale calibration, and 2D profile proposals.
 
-Circle candidates are geometric proposals, not confirmed holes or CAD features. A circle may represent an outer contour, a marking, or a hole; semantic classification and dimensional confirmation remain future work. Rectangle candidates are axis-aligned image-space proposals; rotated and perspective-distorted quadrilaterals are not yet handled. Profile proposals are not yet closed constrained CAD sketches or 3D solids. Region proposals are not fitted arcs or complete CAD contours. The system still does not perform OCR, dimension reading, general vectorization, or 3D reconstruction, and it does not infer physical dimensions without a scale reference.
+Circle candidates are geometric proposals, not confirmed holes or CAD features. A circle may represent an outer contour, a marking, or a hole; semantic classification and dimensional confirmation remain future work. Rectangle candidates are axis-aligned image-space proposals; rotated and perspective-distorted quadrilaterals are not yet handled. Profile proposals are not yet closed constrained CAD sketches or 3D solids. Region proposals are not fitted arcs or complete CAD contours. The system still does not perform OCR image recognition itself (the new parser accepts OCR text from a future OCR provider), full general vectorization, or 3D reconstruction, and it does not infer physical dimensions without a scale reference.
