@@ -10,6 +10,7 @@ from cad.modules.propeller import PropellerSpec
 from cad.modules.service import export_fpv_layout_dxf, export_propeller_planform_dxf
 from build123d import Align, Box, Cylinder, Pos, export_step, export_stl
 from cad.sketch_photo.feature_detection import detect_sketch_features
+from cad.sketch_photo.dimension_parser import parse_dimension_text
 import ezdxf
 
 app = FastAPI(title="MyAI Assistant CAD API", version="0.1.0")
@@ -158,6 +159,23 @@ def propeller_dxf(p: PropellerRequest):
         raise HTTPException(status_code=422, detail=str(exc)) from exc
     return Response(content=payload, media_type="application/dxf",
                     headers={"Content-Disposition": 'attachment; filename="propeller_planform.dxf"'})
+
+
+@app.post("/cad/sketch/parse-dimensions")
+def parse_sketch_dimensions(
+    ocr_text: str = Form(...),
+    default_unit: str = Form(default="mm"),
+):
+    """Parse OCR text supplied by a recognition provider into reviewable dimensions."""
+    try:
+        dimensions = parse_dimension_text(ocr_text, default_unit)
+        return {
+            "dimensions": [item.to_dict() for item in dimensions],
+            "requires_user_confirmation": True,
+            "ocr_performed": False,
+        }
+    except (TypeError, ValueError) as exc:
+        raise HTTPException(status_code=422, detail=str(exc)) from exc
 
 
 @app.post("/cad/sketch/analyze")
