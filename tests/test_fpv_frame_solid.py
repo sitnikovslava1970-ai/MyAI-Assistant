@@ -229,3 +229,13 @@ def test_battery_strap_slots_clear_arm_root_and_standoff_m3_holes():
             dy = max(abs(hy - sy) - segment_half, 0.0)
             edge_gap = (dx * dx + dy * dy) ** 0.5 - slot_radius - solid.arm_root_hole_diameter_mm / 2
             assert edge_gap > 4.0
+
+
+def test_battery_strap_slot_longitudinal_length_is_checked_against_plate_edge():
+    from dataclasses import replace
+
+    frame = FPVFrameSpec()
+    solid = FPVFrameSolidSpec()
+    too_far_forward = replace(solid, battery_strap_slot_center_y_mm=70.0)
+    with pytest.raises(ValueError, match="longitudinal plate dimension"):
+        too_far_forward.validate(frame)
