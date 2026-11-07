@@ -11,7 +11,7 @@ that must be supplied by the user.
 - Optional scale calibration from one known real-world length.
 - Heuristic confidence score and explicit limitations.
 - DXF export with separate `SKETCH_OUTLINE` and `SKETCH_HOLES` layers; calibrated files declare millimetres, while uncalibrated pixel-coordinate files are marked unitless.
-- Prismatic STEP/STL export for calibrated profiles without internal holes,
+- Prismatic STEP/STL export for calibrated profiles, including detected through-holes,
   after the user supplies an explicit thickness.
 
 ## API
@@ -31,8 +31,9 @@ side of the detected outer bounding box.
 The current detector selects the largest connected external silhouette and
 its directly enclosed holes. Disconnected parts, nested islands, tiny features,
 dimension annotations, perspective correction, lens correction, and multi-view
-registration are not implemented. 3D export currently refuses profiles with
-holes rather than silently generating an incorrect solid. A single view cannot
+registration are not implemented. Detected internal contours are subtracted as
+through-holes during 3D export; nested islands, blind pockets, counterbores, and
+non-through cavities are not inferred. A single view cannot
 infer depth, hidden faces, material, threads, wall thickness, or assembly
 relationships. These require additional views, explicit dimensions, or user
 confirmation. The confidence score is heuristic, not a probability or a
