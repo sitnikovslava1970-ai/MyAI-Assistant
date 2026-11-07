@@ -90,13 +90,18 @@ class AdvancedModularXSpec:
             self.motor_y_mm, self.propeller_diameter_mm, self.plate_length_mm,
             self.plate_width_mm, self.bottom_plate_thickness_mm,
             self.top_plate_thickness_mm, self.arm_width_mm, self.arm_thickness_mm,
-            self.arm_overlap_mm, self.root_hole_diameter_mm, self.motor_pattern_mm,
-            self.motor_hole_diameter_mm, self.motor_pad_size_mm,
-            self.standoff_height_mm, self.standoff_x_mm, self.standoff_y_mm,
-            self.standoff_diameter_mm, self.stack_hole_diameter_mm,
+            self.arm_overlap_mm, self.root_hole_diameter_mm, self.root_hole_row_spacing_mm,
+            self.min_prop_gap_mm, self.motor_pattern_mm, self.motor_hole_diameter_mm,
+            self.motor_pad_size_mm, self.standoff_height_mm, self.standoff_x_mm,
+            self.standoff_y_mm, self.standoff_diameter_mm, self.stack_hole_diameter_mm,
         )
         if any(v <= 0 for v in dimensions):
             raise ValueError("All principal dimensions must be positive")
+        stations = (self.root_hole_station_1_mm, self.root_hole_station_2_mm)
+        if any(station >= 0 or abs(station) >= self.arm_overlap_mm for station in stations):
+            raise ValueError("Arm-root bolt stations must lie inside the arm overlap")
+        if abs(stations[0] - stations[1]) <= self.root_hole_diameter_mm:
+            raise ValueError("Arm-root bolt rows must be separated by more than one hole diameter")
         actual = self.diagonal_wheelbase()
         if abs(actual - self.wheelbase_mm) > 1.0:
             raise ValueError(f"Motor layout diagonal is {actual:.2f} mm, target {self.wheelbase_mm:.2f} mm")
