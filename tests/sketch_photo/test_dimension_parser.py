@@ -41,3 +41,30 @@ def test_rejects_invalid_default_unit_and_non_text_input():
         parse_dimension_text("Ø10", default_unit="pixels")
     with pytest.raises(TypeError):
         parse_dimension_text(None)
+
+
+def test_dimension_parser_api_returns_reviewable_dimensions():
+    from fastapi.testclient import TestClient
+    from cad.api.main import app
+
+    response = TestClient(app).post(
+        "/cad/sketch/parse-dimensions",
+        data={"ocr_text": "4x Ø3.2 mm, R5 mm", "default_unit": "mm"},
+    )
+    assert response.status_code == 200
+    payload = response.json()
+    assert payload["ocr_performed"] is False
+    assert payload["requires_user_confirmation"] is True
+    assert [item["kind"] for item in payload["dimensions"]] == ["diameter", "radius"]
+    assert payload["dimensions"][0]["count"] == 4
+
+
+def test_dimension_parser_api_rejects_unknown_units():
+    from fastapi.testclient import TestClient
+    from cad.api.main import app
+
+    response = TestClient(app).post(
+        "/cad/sketch/parse-dimensions",
+        data={"ocr_text": "Ø10", "default_unit": "pixels"},
+    )
+    assert response.status_code == 422
