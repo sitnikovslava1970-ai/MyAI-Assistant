@@ -99,3 +99,32 @@ def export_analysis_dxf(analysis: SketchAnalysis, path: str) -> str:
                                     dxfattribs={"layer": "SKETCH_OUTLINE"})
     doc.saveas(path)
     return path
+
+
+
+def export_analysis_solid(analysis: SketchAnalysis, path: str, thickness_mm: float,
+                          format_name: str = "step") -> str:
+    """Extrude a calibrated closed 2D outline into a simple STEP or STL solid.
+
+    Thickness is an explicit user-supplied engineering dimension; it is never
+    guessed from the photograph. Internal cut-outs are not included in stage 1.
+    """
+    if thickness_mm <= 0:
+        raise ValueError("thickness_mm must be positive")
+    if analysis.scale_mm_per_px is None:
+        raise ValueError("A reference dimension is required before 3D export")
+    fmt = format_name.lower()
+    if fmt not in {"step", "stl"}:
+        raise ValueError("format_name must be 'step' or 'stl'")
+    from build123d import Polygon, make_face, extrude, export_step, export_stl
+
+    profile = Polygon(*analysis.contour_points_mm, align=None)
+    face = make_face(profile)
+    solid = extrude(face, amount=thickness_mm)
+    if not solid.is_valid:
+        raise ValueError("Generated solid is not a valid closed CAD body")
+    if fmt == "step":
+        export_step(solid, path)
+    else:
+        export_stl(solid, path, tolerance=0.05, angular_tolerance=0.1)
+    return path
