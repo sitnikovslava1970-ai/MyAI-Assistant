@@ -79,7 +79,7 @@ This feature supplements, rather than replaces, the existing build123d CAD gener
 - `POST /cad/compare-reference` — compare a generated model with supplied reference views.
 - `GET /cad/jobs/{job_id}` — retrieve processing status and report for asynchronous jobs.
 
-The implemented inspection endpoint is `POST /cad/sketch/analyze`. It returns image-space edge bounds, connected-region proposals, and conservative fitted circle and axis-aligned rectangle candidates; it does not yet confirm holes or return a 3D solid. `POST /cad/sketch/build-profile` builds a closed planar sketch from explicitly confirmed additive/subtractive circle and rectangle features and returns profile metadata; it does not yet extrude or export a 3D solid.
+The implemented inspection endpoint is `POST /cad/sketch/analyze`. It returns image-space edge bounds, connected-region proposals, and conservative fitted circle and axis-aligned rectangle candidates; it does not yet confirm holes or return a 3D solid. `POST /cad/sketch/build-profile` builds a closed planar sketch from explicitly confirmed additive/subtractive circle and rectangle features and returns profile metadata. `POST /cad/sketch/export/{format_name}` extrudes that confirmed profile by `thickness_mm` and exports one validated solid as STEP or STL. The export endpoint is limited to one solid body and does not imply manufacturing approval.
 
 ## User review workflow
 
@@ -101,6 +101,7 @@ The system should not silently invent missing dimensions. It should ask for clar
 - Circle, rectangle, line, arc, and contour detection.
 - Multi-view consistency and occlusion handling.
 - Closed planar build123d profile construction, boolean holes, and API validation.
+- Positive-Z extrusion, single-solid validity checks, and STEP/STL export for confirmed profiles.
 - Parametric model validity and export round-trips.
 - Similarity metrics on controlled test fixtures.
 - Failure cases: no scale reference, blurry image, severe occlusion, conflicting dimensions, and unsupported geometry.
