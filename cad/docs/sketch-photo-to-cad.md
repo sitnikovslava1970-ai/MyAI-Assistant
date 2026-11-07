@@ -62,7 +62,7 @@ This feature supplements, rather than replaces, the existing build123d CAD gener
 - `cad/sketch_photo/`
   - `schemas.py` — input, observation, dimension, and confidence data structures.
   - `image_preprocess.py` — image normalization and perspective preparation.
-  - `feature_detection.py` — contours, primitives, annotations, and landmarks.
+  - `feature_detection.py` — connected edge regions and later primitive/annotation recognition.
   - `dimension_parser.py` — OCR-assisted dimension and unit extraction.
   - `scale_calibration.py` — pixel-to-unit calibration.
   - `geometry_inference.py` — conversion of observations into parametric feature proposals.
@@ -79,7 +79,7 @@ This feature supplements, rather than replaces, the existing build123d CAD gener
 - `POST /cad/compare-reference` — compare a generated model with supplied reference views.
 - `GET /cad/jobs/{job_id}` — retrieve processing status and report for asynchronous jobs.
 
-Exact endpoint contracts should be finalized after inspecting the current FastAPI implementation and upload/storage conventions.
+The first implemented inspection endpoint is `POST /cad/sketch/analyze`. It returns image-space edge bounds and connected-region proposals; it does not yet return fitted CAD curves or a 3D solid.
 
 ## User review workflow
 
@@ -106,8 +106,8 @@ The system should not silently invent missing dimensions. It should ask for clar
 
 ## Implementation stages
 
-1. **Foundation:** schemas, image upload validation, test fixtures, and 2D contour extraction.
-2. **Dimensioned drawings:** dimension parsing, scale calibration, constrained 2D profiles, and extrusion.
+1. **Foundation:** schemas, image upload validation, connected edge-region extraction, and scale calibration.
+2. **Dimensioned drawings:** dimension parsing, constrained 2D profiles, and extrusion.
 3. **Photographs:** single-view provisional geometry with uncertainty reporting.
 4. **Multi-view:** alignment and cross-view geometry reconciliation.
 5. **Similarity loop:** render, compare, identify deviations, and regenerate after parameter correction.
@@ -117,15 +117,14 @@ The system should not silently invent missing dimensions. It should ask for clar
 
 A single perspective photograph generally cannot uniquely determine true 3D dimensions or hidden surfaces. Accurate reconstruction requires scale information and preferably multiple calibrated views. Photogrammetry or learned 3D reconstruction may be integrated as optional providers later, but their output must still be converted into and checked as editable CAD geometry.
 
-
 ## Phase 1 implementation status
 
-The first deterministic foundation is implemented in `cad/sketch_photo/`:
-
+Implemented:
 - Raster loading for PNG/JPEG/TIFF with byte and pixel-count limits.
 - EXIF orientation correction, grayscale conversion, and contrast normalization.
-- Basic edge-map generation and image-space feature bounds.
+- Edge-map generation and overall image-space bounds.
+- 8-connected edge-region proposals with bounding boxes, centers, pixel counts, aspect ratios, and conservative shape hints.
 - Explicit pixel-to-millimetre calibration from a user-confirmed reference length.
-- Synthetic-image tests for feature detection and scale calibration.
+- Synthetic-image tests for edge detection, region extraction, empty images, and scale calibration.
 
-This is an initial 2D image-analysis foundation, not yet a full vectorizer, OCR/dimension reader, or 3D reconstruction engine. It deliberately does not infer physical dimensions without a scale reference.
+Region proposals are not fitted circles, holes, arcs, or CAD contours. Shape hints such as `compact_candidate` are deliberately not treated as geometric recognition. The system still does not perform OCR, dimension reading, vectorization, or 3D reconstruction, and it does not infer physical dimensions without a scale reference.

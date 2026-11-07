@@ -25,6 +25,28 @@ def test_detects_edges_and_bounds_in_synthetic_sketch():
     assert result.bounds.x_max_px >= 90
 
 
+def test_extracts_connected_edge_regions_with_image_coordinates():
+    result = detect_sketch_features(make_test_sketch())
+    assert result.regions
+    region = result.regions[0]
+    assert region.bounds.x_min_px <= 20
+    assert region.bounds.x_max_px >= 90
+    assert region.edge_pixel_count >= 6
+    assert region.center_x_px == pytest.approx(
+        (region.bounds.x_min_px + region.bounds.x_max_px) / 2
+    )
+    assert region.shape_hint in {"elongated", "compact_candidate", "irregular"}
+
+
+def test_empty_image_returns_no_regions():
+    image = Image.new("RGB", (64, 64), "white")
+    buffer = BytesIO()
+    image.save(buffer, format="PNG")
+    result = detect_sketch_features(buffer.getvalue())
+    assert result.bounds is None
+    assert result.regions == ()
+
+
 def test_rejects_invalid_image_payload():
     with pytest.raises(ValueError, match="Unsupported or corrupted"):
         detect_sketch_features(b"not an image")

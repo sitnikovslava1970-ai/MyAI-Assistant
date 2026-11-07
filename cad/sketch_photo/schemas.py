@@ -20,6 +20,18 @@ class ImageBounds:
 
 
 @dataclass(frozen=True)
+class FeatureRegion:
+    """A connected edge fragment in image coordinates, not a fitted CAD primitive."""
+    bounds: ImageBounds
+    edge_pixel_count: int
+    center_x_px: float
+    center_y_px: float
+    aspect_ratio: float
+    pixel_density: float
+    shape_hint: Literal["elongated", "compact_candidate", "irregular"]
+
+
+@dataclass(frozen=True)
 class SketchObservation:
     image_width_px: int
     image_height_px: int
@@ -29,6 +41,7 @@ class SketchObservation:
     source_kind: Literal["sketch", "photo"] = "sketch"
     scale_px_per_mm: float | None = None
     confidence: Literal["low", "medium", "high"] = "low"
+    regions: tuple[FeatureRegion, ...] = ()
 
     def to_dict(self) -> dict:
         return asdict(self)
