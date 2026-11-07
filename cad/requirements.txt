@@ -1,5 +1,7 @@
 # Python CAD engine and export formats
 build123d>=0.9,<0.11
+# build123d 0.10 uses OCP 7.8; ocp_gordon 0.3+ targets OCP 8.0.
+ocp_gordon>=0.2,<0.3
 ezdxf>=1.4,<2
 trimesh>=4.6,<5
 fastapi>=0.115,<1
