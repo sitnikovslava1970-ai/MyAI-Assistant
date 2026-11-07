@@ -5,7 +5,7 @@ All values are millimetres unless a field explicitly says inches.
 - `dimensions.py`: reusable dimensional checks and hole patterns.
 - `fpv_frame.py`: classic-X motor coordinates and motor mounting-hole coordinates (315 mm wheelbase, 18 mm arm width, 5 mm arm thickness by default).
 
-- `advanced_modular_x.py`: separate 327 mm Hybrid Deadcat X R01 concept with four replaceable 22×6 mm arms, 3 mm lower and 2 mm upper plates, four M3 arm-root holes per arm, 19×19 mm motor pattern, both 20×20 and 30.5×30.5 mm stack patterns, and four bored standoffs. Both stack patterns are cut through both center plates.
+- `advanced_modular_x.py`: separate 327 mm Hybrid Deadcat X R01 concept with four replaceable 22×6 mm arms, 3 mm lower and 2 mm upper plates, four M3 arm-root holes per arm, 19×19 mm motor pattern, both 20×20 and 30.5×30.5 mm stack patterns, and four bored standoffs. Both stack patterns are cut through both center plates. The dimensional validator also enforces a 2 mm minimum material web between all lower-plate mounting holes and checks that stack and standoff holes retain plate-edge clearance.
 - `tests/test_advanced_modular_x.py`: parameter, propeller-envelope, arm-root, stack-hole and STEP-solid/export integration checks for the Advanced Modular X model.
 
 - `fpv_frame_solid.py`: first-pass STEP-ready solids for two center plates, four removable arms, motor pads and four standoffs.
